@@ -1,0 +1,45 @@
+{
+  "name": "aglipanci/laravel-case",
+  "description": "Adds CASE statement support to Laravel Query Builder.",
+  "homepage": "https://github.com/aglipanci/laravel-case",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Agli Panci",
+      "email": "agli.panci@gmail.com",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "php": "^8.0",
+    "illuminate/contracts": "^9.0",
+    "illuminate/database": "^9.0"
+  },
+  "require-dev": {
+  },
+  "autoload": {
+    "psr-4": {
+      "AgliPanci\\Case\\": "src/"
+    }
+  },
+  "scripts": {
+    "analyse": "vendor/bin/phpstan analyse",
+    "test": "vendor/bin/pest",
+    "test-coverage": "vendor/bin/pest --coverage"
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "AgliPanci\\Case\\LaravelCaseServiceProvider"
+      ],
+      "aliases": {
+        "CaseStatement": "AgliPanci\\Case\\Facades\\CaseStatement"
+      }
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}
