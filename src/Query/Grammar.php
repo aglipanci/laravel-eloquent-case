@@ -9,41 +9,41 @@ class Grammar
     /**
      * @throws \Throwable
      */
-    public function compile(CaseBuilder $caseStatement): string
+    public function compile(CaseBuilder $caseBuilder): string
     {
         throw_if(
-            ! isset($caseStatement->whens) || ! isset($caseStatement->thens),
+            ! isset($caseBuilder->whens) || ! isset($caseBuilder->thens),
             InvalidCaseBuilderException::noConditionsPresent()
         );
 
         throw_if(
-            count($caseStatement->whens) !== count($caseStatement->thens),
+            count($caseBuilder->whens) !== count($caseBuilder->thens),
             InvalidCaseBuilderException::numberOfConditionsNotMatching()
         );
 
         $components = ['case'];
 
-        if ($caseStatement->subject) {
-            $components[] = $caseStatement->subject;
+        if ($caseBuilder->subject) {
+            $components[] = $caseBuilder->subject;
         }
 
-        foreach ($caseStatement->whens as $i => $when) {
+        foreach ($caseBuilder->whens as $i => $when) {
             $components[] = 'when';
             $components[] = $when;
             $components[] = 'then';
-            $components[] = $caseStatement->thens[$i];
+            $components[] = $caseBuilder->thens[$i];
         }
 
-        if ($caseStatement->else) {
+        if ($caseBuilder->else) {
             $components[] = 'else';
-            $components[] = $caseStatement->else;
+            $components[] = $caseBuilder->else;
         }
 
         $components[] = 'end';
 
         $sql = trim(implode(' ', $components));
 
-        if ($caseStatement->sum) {
+        if ($caseBuilder->sum) {
             $sql = 'sum('.$sql.')';
         }
 
