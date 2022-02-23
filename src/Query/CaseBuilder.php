@@ -2,7 +2,7 @@
 
 namespace AgliPanci\LaravelCase\Query;
 
-use AgliPanci\LaravelCase\Exceptions\InvalidCaseBuilder;
+use AgliPanci\LaravelCase\Exceptions\InvalidCaseBuilderException;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Str;
 
@@ -67,7 +67,7 @@ class CaseBuilder
     {
         throw_if(
             ! $this->subject && func_num_args() === 1,
-            InvalidCaseBuilder::subjectMustBePresentWhenCaseOperatorNotUsed()
+            InvalidCaseBuilderException::subjectMustBePresentWhenCaseOperatorNotUsed()
         );
 
         [$value, $operator] = $this->queryBuilder->prepareValueAndOperator(
@@ -118,7 +118,7 @@ class CaseBuilder
     {
         throw_if(
             $this->else,
-            InvalidCaseBuilder::elseIsPresent()
+            InvalidCaseBuilderException::elseIsPresent()
         );
 
         $this->else = '?';

@@ -4,7 +4,7 @@ namespace AgliPanci\LaravelCase\Exceptions;
 
 use Exception;
 
-class InvalidCaseBuilder extends Exception
+class InvalidCaseBuilderException extends Exception
 {
     public static function elseIsPresent(): static
     {

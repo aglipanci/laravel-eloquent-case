@@ -2,7 +2,7 @@
 
 namespace AgliPanci\LaravelCase\Query;
 
-use AgliPanci\LaravelCase\Exceptions\InvalidCaseBuilder;
+use AgliPanci\LaravelCase\Exceptions\InvalidCaseBuilderException;
 
 class Grammar
 {
@@ -13,12 +13,12 @@ class Grammar
     {
         throw_if(
             ! isset($caseStatement->whens) || ! isset($caseStatement->thens),
-            InvalidCaseBuilder::noConditionsPresent()
+            InvalidCaseBuilderException::noConditionsPresent()
         );
 
         throw_if(
             count($caseStatement->whens) !== count($caseStatement->thens),
-            InvalidCaseBuilder::numberOfConditionsNotMatching()
+            InvalidCaseBuilderException::numberOfConditionsNotMatching()
         );
 
         $components = ['case'];
