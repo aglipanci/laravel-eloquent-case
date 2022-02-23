@@ -133,6 +133,7 @@ class CaseBuilder
         );
 
         $this->else = '?';
+
         $this->addBinding($value, 'else');
 
         return $this;
@@ -141,6 +142,7 @@ class CaseBuilder
     public function elseRaw($value, $bindings = []): self
     {
         $this->else = $value;
+
         $this->addBinding($bindings, 'else');
 
         return $this;
