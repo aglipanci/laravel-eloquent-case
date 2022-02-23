@@ -1,10 +1,10 @@
 <?php
 
-namespace AgliPanci\Case\Exceptions;
+namespace AgliPanci\LaravelCase\Exceptions;
 
 use Exception;
 
-class InvalidCaseStatement extends Exception
+class InvalidCaseBuilder extends Exception
 {
     public static function elseIsPresent(): static
     {

@@ -19,7 +19,7 @@
   },
   "autoload": {
     "psr-4": {
-      "AgliPanci\\Case\\": "src/"
+      "AgliPanci\\LaravelCase\\": "src/"
     }
   },
   "scripts": {
@@ -33,10 +33,10 @@
   "extra": {
     "laravel": {
       "providers": [
-        "AgliPanci\\Case\\LaravelCaseServiceProvider"
+        "AgliPanci\\LaravelCase\\LaravelCaseServiceProvider"
       ],
       "aliases": {
-        "CaseStatement": "AgliPanci\\Case\\Facades\\CaseStatement"
+        "CaseStatement": "CaseBuilder"
       }
     }
   },
