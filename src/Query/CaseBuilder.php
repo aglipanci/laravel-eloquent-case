@@ -51,7 +51,7 @@ class CaseBuilder
 
     public function case($subject): self
     {
-        $this->subject = $subject;
+        $this->subject = $this->grammar->wrapColumn($subject);
 
         return $this;
     }
@@ -75,10 +75,10 @@ class CaseBuilder
         );
 
         if ($value) {
-            $this->whens[] = $column.' '.$operator.' ?';
+            $this->whens[] = $this->grammar->wrapColumn($column).' '.$operator.' ?';
             $this->bindings[] = $value;
         } elseif ($operator) {
-            $this->whens[] = $column.' ?';
+            $this->whens[] = $this->grammar->wrapColumn($column).' ?';
             $this->bindings[] = $operator;
         } else {
             $this->whens[] = $column;
@@ -155,7 +155,15 @@ class CaseBuilder
      */
     public function toRaw(): string
     {
-        return Str::replaceArray('?', $this->getBindings(), $this->toSql());
+        $bindings = collect($this->getBindings())
+            ->map(fn($parameter) => is_string($parameter) ? $this->grammar->wrapValue($parameter) : $parameter)
+            ->toArray();
+
+        return Str::replaceArray(
+            '?',
+            $bindings,
+            $this->toSql()
+        );
     }
 
     public function getBindings(): array

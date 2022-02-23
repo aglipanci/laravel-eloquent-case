@@ -49,4 +49,14 @@ class Grammar
 
         return $sql;
     }
+
+    public function wrapColumn($value): string
+    {
+        return '`'.str_replace('`', '``', $value).'`';
+    }
+
+    public function wrapValue($value): string
+    {
+        return '"'.str_replace('"', '""', $value).'"';
+    }
 }
