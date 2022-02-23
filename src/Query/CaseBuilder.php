@@ -4,7 +4,9 @@ namespace AgliPanci\LaravelCase\Query;
 
 use AgliPanci\LaravelCase\Exceptions\InvalidCaseBuilderException;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 class CaseBuilder
 {
@@ -31,7 +33,11 @@ class CaseBuilder
     /**
      * @var array
      */
-    public array $bindings = [];
+    public array $bindings = [
+        'when' => [],
+        'then' => [],
+        'else' => [],
+    ];
 
     /**
      * @var bool
@@ -76,10 +82,12 @@ class CaseBuilder
 
         if ($value) {
             $this->whens[] = $this->grammar->wrapColumn($column).' '.$operator.' ?';
-            $this->bindings[] = $value;
+
+            $this->addBinding($value, 'when');
         } elseif ($operator) {
             $this->whens[] = $this->grammar->wrapColumn($column).' ?';
-            $this->bindings[] = $operator;
+
+            $this->addBinding($operator, 'when');
         } else {
             $this->whens[] = $column;
         }
@@ -90,7 +98,8 @@ class CaseBuilder
     public function whenRaw(string $expression, $bindings = []): self
     {
         $this->whens[] = $expression;
-        $this->bindings = array_merge($this->bindings, $bindings);
+
+        $this->addBinding($bindings, 'when');
 
         return $this;
     }
@@ -98,7 +107,8 @@ class CaseBuilder
     public function then($value): self
     {
         $this->thens[] = '?';
-        $this->bindings[] = $value;
+
+        $this->addBinding($value, 'then');
 
         return $this;
     }
@@ -106,7 +116,8 @@ class CaseBuilder
     public function thenRaw($value, $bindings = []): self
     {
         $this->thens[] = $value;
-        $this->bindings = array_merge($this->bindings, $bindings);
+
+        $this->addBinding($bindings, 'then');
 
         return $this;
     }
@@ -122,7 +133,7 @@ class CaseBuilder
         );
 
         $this->else = '?';
-        $this->bindings[] = $value;
+        $this->addBinding($value, 'else');
 
         return $this;
     }
@@ -130,7 +141,7 @@ class CaseBuilder
     public function elseRaw($value, $bindings = []): self
     {
         $this->else = $value;
-        $this->bindings = array_merge($this->bindings, $bindings);
+        $this->addBinding($bindings, 'else');
 
         return $this;
     }
@@ -155,9 +166,10 @@ class CaseBuilder
      */
     public function toRaw(): string
     {
-        $bindings = collect($this->getBindings())
-            ->map(fn($parameter) => is_string($parameter) ? $this->grammar->wrapValue($parameter) : $parameter)
-            ->toArray();
+        $bindings = array_map(
+            fn($parameter) => is_string($parameter) ? $this->grammar->wrapValue($parameter) : $parameter,
+            $this->getBindings()
+        );
 
         return Str::replaceArray(
             '?',
@@ -166,9 +178,39 @@ class CaseBuilder
         );
     }
 
+    public function addBinding(mixed $value, string $type): static
+    {
+        if (! array_key_exists($type, $this->bindings)) {
+            throw new InvalidArgumentException("Invalid binding type: {$type}.");
+        }
+
+        $this->bindings[$type][] = $value;
+
+        return $this;
+    }
+
     public function getBindings(): array
     {
-        return $this->bindings;
+        $bindings = [];
+
+        /**
+         * Flattening here is to handle raw cases with multiple bindings.
+         */
+        foreach ($this->whens as $i => $when) {
+            if (is_array($this->bindings['when'][$i])) {
+                $bindings = array_merge($bindings, $this->bindings['when'][$i]);
+            } else {
+                $bindings[] = $this->bindings['when'][$i];
+            }
+
+            if (is_array($this->bindings['then'][$i])) {
+                $bindings = array_merge($bindings, $this->bindings['then'][$i]);
+            } else {
+                $bindings[] = $this->bindings['then'][$i];
+            }
+        }
+
+        return array_merge($bindings, Arr::flatten($this->bindings['else']));
     }
 
     /**
