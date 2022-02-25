@@ -2,6 +2,7 @@
 
 namespace AgliPanci\LaravelCase;
 
+use AgliPanci\LaravelCase\Query\Grammar;
 use Closure;
 use AgliPanci\LaravelCase\Query\CaseBuilder;
 use Illuminate\Support\ServiceProvider;
@@ -21,7 +22,7 @@ class LaravelCaseServiceProvider extends ServiceProvider
             if ($statement instanceof Closure) {
                 $callback = $statement;
 
-                $callback($statement = app(CaseBuilder::class));
+                $callback($statement = new CaseBuilder($this, new Grammar()));
             }
 
             $this->selectRaw(
