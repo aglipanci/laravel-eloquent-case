@@ -202,6 +202,16 @@ class CaseBuilder
      */
     public function toSql(): string
     {
+        throw_if(
+            ! isset($this->whens) || ! isset($this->thens),
+            InvalidCaseBuilderException::noConditionsPresent()
+        );
+
+        throw_if(
+            count($this->whens) !== count($this->thens),
+            InvalidCaseBuilderException::numberOfConditionsNotMatching()
+        );
+
         return $this->grammar->compile($this);
     }
 

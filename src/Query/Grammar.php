@@ -2,8 +2,6 @@
 
 namespace AgliPanci\LaravelCase\Query;
 
-use AgliPanci\LaravelCase\Exceptions\InvalidCaseBuilderException;
-
 class Grammar
 {
     /**
@@ -11,16 +9,6 @@ class Grammar
      */
     public function compile(CaseBuilder $caseBuilder): string
     {
-        throw_if(
-            ! isset($caseBuilder->whens) || ! isset($caseBuilder->thens),
-            InvalidCaseBuilderException::noConditionsPresent()
-        );
-
-        throw_if(
-            count($caseBuilder->whens) !== count($caseBuilder->thens),
-            InvalidCaseBuilderException::numberOfConditionsNotMatching()
-        );
-
         $components = ['case'];
 
         if ($caseBuilder->subject) {
