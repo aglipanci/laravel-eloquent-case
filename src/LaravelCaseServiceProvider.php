@@ -17,16 +17,16 @@ class LaravelCaseServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        Builder::macro('case', function (Closure|CaseBuilder $statement, string $as) {
+        Builder::macro('case', function (Closure|CaseBuilder $caseBuilder, string $as) {
 
-            if ($statement instanceof Closure) {
-                $callback = $statement;
+            if ($caseBuilder instanceof Closure) {
+                $callback = $caseBuilder;
 
-                $callback($statement = new CaseBuilder($this, new Grammar()));
+                $callback($caseBuilder = new CaseBuilder($this, new Grammar()));
             }
 
             $this->selectRaw(
-                '('.$statement->toSql().') as '.$this->grammar->wrap($as), $statement->getBindings()
+                '('.$caseBuilder->toSql().') as '.$this->grammar->wrap($as), $caseBuilder->getBindings()
             );
         });
 
