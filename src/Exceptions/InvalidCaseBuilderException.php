@@ -25,4 +25,19 @@ class InvalidCaseBuilderException extends Exception
     {
         return new static('The CASE statement subject must be present when operator and column are not present.');
     }
+
+    public static function thenCannotBeBeforeWhen(): static
+    {
+        return new static('THEN cannot be before WHEN on a CASE statement.');
+    }
+
+    public static function elseCanOnlyBeAfterAWhenThen(): static
+    {
+        return new static('ELSE can only be set after a WHEN/THEN in a CASE statement.');
+    }
+
+    public static function wrongWhenPosition(): static
+    {
+        return new static('Wrong WHEN position.');
+    }
 }

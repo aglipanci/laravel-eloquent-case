@@ -18,12 +18,12 @@ class CaseBuilder
     /**
      * @var array
      */
-    public array $whens;
+    public array $whens = [];
 
     /**
      * @var array
      */
-    public array $thens;
+    public array $thens = [];
 
     /**
      * @var string|null
@@ -76,6 +76,11 @@ class CaseBuilder
             InvalidCaseBuilderException::subjectMustBePresentWhenCaseOperatorNotUsed()
         );
 
+        throw_unless(
+            count($this->whens) === count($this->thens),
+            InvalidCaseBuilderException::wrongWhenPosition()
+        );
+
         [$value, $operator] = $this->queryBuilder->prepareValueAndOperator(
             $value, $operator, func_num_args() === 2
         );
@@ -95,8 +100,16 @@ class CaseBuilder
         return $this;
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function whenRaw(string $expression, $bindings = []): self
     {
+        throw_unless(
+            count($this->whens) === count($this->thens),
+            InvalidCaseBuilderException::wrongWhenPosition()
+        );
+
         $this->whens[] = $expression;
 
         $this->addBinding($bindings, 'when');
@@ -104,8 +117,16 @@ class CaseBuilder
         return $this;
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function then($value): self
     {
+        throw_if(
+            count($this->whens) == count($this->thens),
+            InvalidCaseBuilderException::thenCannotBeBeforeWhen()
+        );
+
         $this->thens[] = '?';
 
         $this->addBinding($value, 'then');
@@ -113,8 +134,16 @@ class CaseBuilder
         return $this;
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function thenRaw($value, $bindings = []): self
     {
+        throw_if(
+            count($this->whens) == count($this->thens),
+            InvalidCaseBuilderException::thenCannotBeBeforeWhen()
+        );
+
         $this->thens[] = $value;
 
         $this->addBinding($bindings, 'then');
@@ -132,6 +161,11 @@ class CaseBuilder
             InvalidCaseBuilderException::elseIsPresent()
         );
 
+        throw_if(
+            count($this->whens) === 0,
+            InvalidCaseBuilderException::elseCanOnlyBeAfterAWhenThen()
+        );
+
         $this->else = '?';
 
         $this->addBinding($value, 'else');
@@ -139,8 +173,16 @@ class CaseBuilder
         return $this;
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function elseRaw($value, $bindings = []): self
     {
+        throw_if(
+            count($this->whens) === 0,
+            InvalidCaseBuilderException::elseCanOnlyBeAfterAWhenThen()
+        );
+
         $this->else = $value;
 
         $this->addBinding($bindings, 'else');
