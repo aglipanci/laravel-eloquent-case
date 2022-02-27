@@ -232,11 +232,15 @@ class CaseBuilder
         );
     }
 
+    /**
+     * @throws \Throwable
+     */
     public function addBinding(mixed $value, string $type): static
     {
-        if (! array_key_exists($type, $this->bindings)) {
-            throw new InvalidArgumentException("Invalid binding type: {$type}.");
-        }
+        throw_unless(array_key_exists($type, $this->bindings),
+            InvalidArgumentException::class,
+            "Invalid binding type: {$type}."
+        );
 
         $this->bindings[$type][] = $value;
 
