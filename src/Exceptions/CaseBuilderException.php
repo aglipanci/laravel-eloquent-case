@@ -4,12 +4,12 @@ namespace AgliPanci\LaravelCase\Exceptions;
 
 use Exception;
 
-final class InvalidCaseBuilderException extends Exception
+class CaseBuilderException extends Exception
 {
     /**
      * @return static
      */
-    public static function elseIsPresent(): InvalidCaseBuilderException
+    public static function elseIsPresent(): CaseBuilderException
     {
         return new static('ELSE statement is already present. The CASE statement can have only one ELSE.');
     }
@@ -17,7 +17,7 @@ final class InvalidCaseBuilderException extends Exception
     /**
      * @return static
      */
-    public static function noConditionsPresent(): InvalidCaseBuilderException
+    public static function noConditionsPresent(): CaseBuilderException
     {
         return new static('The CASE statement must have at least one WHEN/THEN condition.');
     }
@@ -25,7 +25,7 @@ final class InvalidCaseBuilderException extends Exception
     /**
      * @return static
      */
-    public static function numberOfConditionsNotMatching(): InvalidCaseBuilderException
+    public static function numberOfConditionsNotMatching(): CaseBuilderException
     {
         return new static('The CASE statement must have a matching number of WHEN/THEN conditions.');
     }
@@ -33,7 +33,7 @@ final class InvalidCaseBuilderException extends Exception
     /**
      * @return static
      */
-    public static function subjectMustBePresentWhenCaseOperatorNotUsed(): InvalidCaseBuilderException
+    public static function subjectMustBePresentWhenCaseOperatorNotUsed(): CaseBuilderException
     {
         return new static('The CASE statement subject must be present when operator and column are not present.');
     }
@@ -41,7 +41,7 @@ final class InvalidCaseBuilderException extends Exception
     /**
      * @return static
      */
-    public static function thenCannotBeBeforeWhen(): InvalidCaseBuilderException
+    public static function thenCannotBeBeforeWhen(): CaseBuilderException
     {
         return new static('THEN cannot be before WHEN on a CASE statement.');
     }
@@ -49,7 +49,7 @@ final class InvalidCaseBuilderException extends Exception
     /**
      * @return static
      */
-    public static function elseCanOnlyBeAfterAWhenThen(): InvalidCaseBuilderException
+    public static function elseCanOnlyBeAfterAWhenThen(): CaseBuilderException
     {
         return new static('ELSE can only be set after a WHEN/THEN in a CASE statement.');
     }
@@ -57,7 +57,7 @@ final class InvalidCaseBuilderException extends Exception
     /**
      * @return static
      */
-    public static function wrongWhenPosition(): InvalidCaseBuilderException
+    public static function wrongWhenPosition(): CaseBuilderException
     {
         return new static('Wrong WHEN position.');
     }

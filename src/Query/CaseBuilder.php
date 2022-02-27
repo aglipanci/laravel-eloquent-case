@@ -2,7 +2,7 @@
 
 namespace AgliPanci\LaravelCase\Query;
 
-use AgliPanci\LaravelCase\Exceptions\InvalidCaseBuilderException;
+use AgliPanci\LaravelCase\Exceptions\CaseBuilderException;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
@@ -61,12 +61,12 @@ class CaseBuilder
     {
         throw_if(
             ! $this->subject && func_num_args() === 1,
-            InvalidCaseBuilderException::subjectMustBePresentWhenCaseOperatorNotUsed()
+            CaseBuilderException::subjectMustBePresentWhenCaseOperatorNotUsed()
         );
 
         throw_unless(
             count($this->whens) === count($this->thens),
-            InvalidCaseBuilderException::wrongWhenPosition()
+            CaseBuilderException::wrongWhenPosition()
         );
 
         [ $value, $operator ] = $this->queryBuilder->prepareValueAndOperator(
@@ -97,7 +97,7 @@ class CaseBuilder
     {
         throw_unless(
             count($this->whens) === count($this->thens),
-            InvalidCaseBuilderException::wrongWhenPosition()
+            CaseBuilderException::wrongWhenPosition()
         );
 
         $this->whens[] = $expression;
@@ -114,7 +114,7 @@ class CaseBuilder
     {
         throw_if(
             count($this->whens) == count($this->thens),
-            InvalidCaseBuilderException::thenCannotBeBeforeWhen()
+            CaseBuilderException::thenCannotBeBeforeWhen()
         );
 
         $this->thens[] = '?';
@@ -131,7 +131,7 @@ class CaseBuilder
     {
         throw_if(
             count($this->whens) == count($this->thens),
-            InvalidCaseBuilderException::thenCannotBeBeforeWhen()
+            CaseBuilderException::thenCannotBeBeforeWhen()
         );
 
         $this->thens[] = $value;
@@ -148,12 +148,12 @@ class CaseBuilder
     {
         throw_if(
             $this->else,
-            InvalidCaseBuilderException::elseIsPresent()
+            CaseBuilderException::elseIsPresent()
         );
 
         throw_if(
             count($this->whens) === 0 || count($this->whens) !== count($this->thens),
-            InvalidCaseBuilderException::elseCanOnlyBeAfterAWhenThen()
+            CaseBuilderException::elseCanOnlyBeAfterAWhenThen()
         );
 
         $this->else = '?';
@@ -170,7 +170,7 @@ class CaseBuilder
     {
         throw_if(
             count($this->whens) === 0,
-            InvalidCaseBuilderException::elseCanOnlyBeAfterAWhenThen()
+            CaseBuilderException::elseCanOnlyBeAfterAWhenThen()
         );
 
         $this->else = $value;
@@ -194,12 +194,12 @@ class CaseBuilder
     {
         throw_if(
             ! isset($this->whens) || ! isset($this->thens),
-            InvalidCaseBuilderException::noConditionsPresent()
+            CaseBuilderException::noConditionsPresent()
         );
 
         throw_if(
             count($this->whens) !== count($this->thens),
-            InvalidCaseBuilderException::numberOfConditionsNotMatching()
+            CaseBuilderException::numberOfConditionsNotMatching()
         );
 
         return $this->grammar->compile($this);
@@ -223,15 +223,17 @@ class CaseBuilder
     }
 
     /**
-     * @param mixed $value
-     * @param string $type
+     * @param  mixed  $value
+     * @param  string  $type
      * @return $this
+     * @throws \Throwable
      */
-    public function addBinding($value, string $type): CaseBuilder
+    public function addBinding(mixed $value, string $type): CaseBuilder
     {
-        if (! array_key_exists($type, $this->bindings)) {
-            throw new InvalidArgumentException("Invalid binding type: {$type}.");
-        }
+        throw_unless(array_key_exists($type, $this->bindings),
+            InvalidArgumentException::class,
+            "Invalid binding type: {$type}."
+        );
 
         $this->bindings[$type][] = $value;
 
