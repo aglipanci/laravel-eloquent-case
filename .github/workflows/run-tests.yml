@@ -1,0 +1,50 @@
+name: run-tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest ]
+        php: [ 8.1, 8.0, 7.4 ]
+        dependency-version: [ prefer-lowest, prefer-stable ]
+
+    name: P${{ matrix.php }} - ${{ matrix.dependency-version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Install dependencies
+        run: |
+          composer update --prefer-dist --no-interaction --${{ matrix.dependency-version }}
+
+      - name: Run static code analysis
+        run: vendor/bin/phpstan analyse
+
+      - name: Execute tests
+        run: vendor/bin/phpunit
+
+      - name: Run coding standard checks
+        run: vendor/bin/php-cs-fixer fix
+
+      - name: Auto-commit php-cs-fixer changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Apply coding standard fixes
+          commit_user_name: github-actions
+          commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
+

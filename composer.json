@@ -11,21 +11,32 @@
     }
   ],
   "require": {
-    "php": "^8.0",
+    "php": "^7.4|^8.0",
     "illuminate/database": "^8.0|^9.0",
     "illuminate/support": "^8.0|^9.0"
   },
   "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3.6",
+    "nunomaduro/larastan": "^1.0",
+    "orchestra/testbench": "^6.23.0|^7.0.0",
+    "phpunit/phpunit": "^9.3.9"
   },
   "autoload": {
     "psr-4": {
       "AgliPanci\\LaravelCase\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "AgliPanci\\LaravelCase\\Tests\\": "tests"
+    }
+  },
   "scripts": {
-    "analyse": "vendor/bin/phpstan analyse",
-    "test": "vendor/bin/pest",
-    "test-coverage": "vendor/bin/pest --coverage"
+    "analyse": "vendor/bin/phpstan analyse --ansi",
+    "test": "vendor/bin/phpunit",
+    "test-coverage": "vendor/bin/phpunit --coverage-text",
+    "sniff": "vendor/bin/php-cs-fixer fix --verbose --dry-run --diff",
+    "lint": "vendor/bin/php-cs-fixer fix --verbose --show-progress=dots"
   },
   "config": {
     "sort-packages": true

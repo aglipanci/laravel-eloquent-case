@@ -7,52 +7,40 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Throwable;
 
 class CaseBuilder
 {
-    /**
-     * @var string|null
-     */
     public ?string $subject = null;
 
-    /**
-     * @var array
-     */
     public array $whens = [];
 
-    /**
-     * @var array
-     */
     public array $thens = [];
 
-    /**
-     * @var string|null
-     */
     public ?string $else = null;
 
-    /**
-     * @var array
-     */
     public array $bindings = [
         'when' => [],
         'then' => [],
         'else' => [],
     ];
 
-    /**
-     * @var bool
-     */
     public bool $sum = false;
 
+    public Grammar $grammar;
+
+    public QueryBuilder $queryBuilder;
+
     /**
-     * @param  \Illuminate\Database\Query\Builder  $queryBuilder
-     * @param  \AgliPanci\LaravelCase\Query\Grammar  $grammar
+     * @param QueryBuilder $queryBuilder
+     * @param Grammar $grammar
      */
     public function __construct(
-        protected QueryBuilder $queryBuilder,
-        protected Grammar $grammar
+        QueryBuilder $queryBuilder,
+        Grammar      $grammar
     ) {
-
+        $this->queryBuilder = $queryBuilder;
+        $this->grammar = $grammar;
     }
 
     public function case($subject): self
@@ -63,13 +51,13 @@ class CaseBuilder
     }
 
     /**
-     * @param  mixed  $column
-     * @param $operator
-     * @param $value
+     * @param mixed $column
+     * @param mixed $operator
+     * @param mixed $value
      * @return $this
-     * @throws \Throwable
+     * @throws Throwable
      */
-    public function when(mixed $column, $operator = null, $value = null): self
+    public function when($column, $operator = null, $value = null): self
     {
         throw_if(
             ! $this->subject && func_num_args() === 1,
@@ -81,16 +69,18 @@ class CaseBuilder
             InvalidCaseBuilderException::wrongWhenPosition()
         );
 
-        [$value, $operator] = $this->queryBuilder->prepareValueAndOperator(
-            $value, $operator, func_num_args() === 2
+        [ $value, $operator ] = $this->queryBuilder->prepareValueAndOperator(
+            $value,
+            $operator,
+            func_num_args() === 2
         );
 
         if ($value) {
-            $this->whens[] = $this->grammar->wrapColumn($column).' '.$operator.' ?';
+            $this->whens[] = $this->grammar->wrapColumn($column) . ' ' . $operator . ' ?';
 
             $this->addBinding($value, 'when');
         } elseif ($operator) {
-            $this->whens[] = $this->grammar->wrapColumn($column).' ?';
+            $this->whens[] = $this->grammar->wrapColumn($column) . ' ?';
 
             $this->addBinding($operator, 'when');
         } else {
@@ -101,7 +91,7 @@ class CaseBuilder
     }
 
     /**
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function whenRaw(string $expression, $bindings = []): self
     {
@@ -118,7 +108,7 @@ class CaseBuilder
     }
 
     /**
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function then($value): self
     {
@@ -135,7 +125,7 @@ class CaseBuilder
     }
 
     /**
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function thenRaw($value, $bindings = []): self
     {
@@ -152,7 +142,7 @@ class CaseBuilder
     }
 
     /**
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function else($value): self
     {
@@ -162,7 +152,7 @@ class CaseBuilder
         );
 
         throw_if(
-            count($this->whens) === 0,
+            count($this->whens) === 0 || count($this->whens) !== count($this->thens),
             InvalidCaseBuilderException::elseCanOnlyBeAfterAWhenThen()
         );
 
@@ -174,7 +164,7 @@ class CaseBuilder
     }
 
     /**
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function elseRaw($value, $bindings = []): self
     {
@@ -198,7 +188,7 @@ class CaseBuilder
     }
 
     /**
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function toSql(): string
     {
@@ -216,12 +206,12 @@ class CaseBuilder
     }
 
     /**
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function toRaw(): string
     {
         $bindings = array_map(
-            fn($parameter) => is_string($parameter) ? $this->grammar->wrapValue($parameter) : $parameter,
+            fn ($parameter) => is_string($parameter) ? $this->grammar->wrapValue($parameter) : $parameter,
             $this->getBindings()
         );
 
@@ -232,7 +222,12 @@ class CaseBuilder
         );
     }
 
-    public function addBinding(mixed $value, string $type): static
+    /**
+     * @param mixed $value
+     * @param string $type
+     * @return $this
+     */
+    public function addBinding($value, string $type): CaseBuilder
     {
         if (! array_key_exists($type, $this->bindings)) {
             throw new InvalidArgumentException("Invalid binding type: {$type}.");
@@ -268,7 +263,7 @@ class CaseBuilder
     }
 
     /**
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function toQuery(): QueryBuilder
     {

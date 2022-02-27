@@ -2,11 +2,11 @@
 
 namespace AgliPanci\LaravelCase;
 
+use AgliPanci\LaravelCase\Query\CaseBuilder;
 use AgliPanci\LaravelCase\Query\Grammar;
 use Closure;
-use AgliPanci\LaravelCase\Query\CaseBuilder;
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Support\ServiceProvider;
 
 class LaravelCaseServiceProvider extends ServiceProvider
 {
@@ -17,21 +17,23 @@ class LaravelCaseServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        Builder::macro('case', function (Closure|CaseBuilder $caseBuilder, string $as) {
-
+        Builder::macro('case', function ($caseBuilder, string $as) {
             if ($caseBuilder instanceof Closure) {
                 $callback = $caseBuilder;
 
                 $callback($caseBuilder = new CaseBuilder($this, new Grammar()));
             }
 
+            /** @var Builder $this */
             $this->selectRaw(
-                '('.$caseBuilder->toSql().') as '.$this->grammar->wrap($as), $caseBuilder->getBindings()
+                '('.$caseBuilder->toSql().') as '.$this->grammar->wrap($as),
+                $caseBuilder->getBindings()
             );
         });
 
-        $this->app->bind('casebuilder',
-            fn($app) => $app->make(CaseBuilder::class)
+        $this->app->bind(
+            'casebuilder',
+            fn ($app) => $app->make(CaseBuilder::class)
         );
     }
 }
