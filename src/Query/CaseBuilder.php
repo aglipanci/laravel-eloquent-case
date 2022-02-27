@@ -230,7 +230,8 @@ class CaseBuilder
      */
     public function addBinding(mixed $value, string $type): CaseBuilder
     {
-        throw_unless(array_key_exists($type, $this->bindings),
+        throw_unless(
+            array_key_exists($type, $this->bindings),
             InvalidArgumentException::class,
             "Invalid binding type: {$type}."
         );
