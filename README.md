@@ -1,10 +1,11 @@
 # Laravel Case Statement Support
+![Test Status](https://img.shields.io/github/workflow/status/aglipanci/laravel-case/run-tests?label=tests)
 
 This packages adds MySQL `CASE` statement support to Laravel Query Builder.
 
 ## Basic usage
 
-### Add a CASE statement select on a Laravel Query:
+### Add a CASE statement select on a Laravel Query
 
 ```php
 use App\Models\User;
@@ -21,7 +22,7 @@ $users = User::query()
             ->get();
 ```
 
-### Build the case query separately:
+### Build the case query separately
 
 ```php
 use \AgliPanci\LaravelCase\Facades\CaseBuilder;
@@ -36,7 +37,7 @@ $users = User::query()
             ->get();
 ```
 
-### Raw conditions:
+### Raw CASE conditions
 
 ```php
 use \AgliPanci\LaravelCase\Facades\CaseBuilder;
@@ -50,7 +51,7 @@ $users = User::query()
             ->get();
 ```
 
-### Available methods
+### Use as raw SELECT
 
 ```php
 use \AgliPanci\LaravelCase\Facades\CaseBuilder;
@@ -59,10 +60,31 @@ $caseQuery = CaseBuilder::whenRaw('payment_status = ?', [1])
                     ->thenRaw("'Paid'")
                     ->elseRaw("'N/A'")
                     
-$caseQuery->toSql(); // Get the SQL representation of the query.
-$caseQuery->getBindings(); // Get the query bindings.
-$caseQuery->toRaw(); // Get the SQL representation of the query with bindings.
-$caseQuery->toQuery(); // Get a Illuminate\Database\Query\Builder instance.
+$users = User::query()
+            ->selectRaw($caseQuery->toRaw())
+            ->get();
+```
+
+### Available methods
+
+```php
+use \AgliPanci\LaravelCase\Facades\CaseBuilder;
+
+$caseQuery = CaseBuilder::whenRaw('payment_status = ?', [1])
+                    ->thenRaw("'Paid'")
+                    ->elseRaw("'N/A'");
+                    
+// Get the SQL representation of the query.                    
+$caseQuery->toSql(); 
+
+// Get the query bindings.
+$caseQuery->getBindings(); 
+
+// Get the SQL representation of the query with bindings.
+$caseQuery->toRaw(); 
+
+ // Get an Illuminate\Database\Query\Builder instance.
+$caseQuery->toQuery();
 ```
 
 ## Installation
