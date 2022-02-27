@@ -1,7 +1,7 @@
 # Laravel Case Statement Support
 ![Test Status](https://img.shields.io/github/workflow/status/aglipanci/laravel-case/run-tests?label=tests)
 
-This packages adds [CASE](https://dev.mysql.com/doc/refman/5.7/en/flow-control-functions.html#operator_case) statement support to Laravel Query Builder.
+This packages adds [CASE](https://dev.mysql.com/doc/refman/5.7/en/flow-control-functions.html#operator_case) statement support to Laravel Query Builder. It supports Laravel 8 & 9.
 
 ## Usage
 
@@ -20,6 +20,12 @@ $users = User::query()
                     ->else('Pending');
             }, 'payment_status')
             ->get();
+```
+
+Produces the following SQL query:
+
+```mysql
+select (case when `payment_status` = 1 then 'Paid' when `payment_status` = 2 then 'In Process' else 'Pending' end) as `payment_status` from `users` where `users`.`deleted_at` is null
 ```
 
 ### Build the case query separately
