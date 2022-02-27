@@ -223,7 +223,7 @@ class CaseBuilder
     }
 
     /**
-     * @param $value
+     * @param mixed $value
      * @param  string  $type
      * @return $this
      * @throws \Throwable
