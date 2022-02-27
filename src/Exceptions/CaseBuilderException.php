@@ -4,7 +4,7 @@ namespace AgliPanci\LaravelCase\Exceptions;
 
 use Exception;
 
-final class CaseBuilderException extends Exception
+class CaseBuilderException extends Exception
 {
     /**
      * @return static

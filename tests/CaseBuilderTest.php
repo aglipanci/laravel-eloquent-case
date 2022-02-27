@@ -7,13 +7,9 @@ use AgliPanci\LaravelCase\Facades\CaseBuilder;
 use AgliPanci\LaravelCase\Query\CaseBuilder as QueryCaseBuilder;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
-use Throwable;
 
 class CaseBuilderTest extends TestCase
 {
-    /**
-     * @throws Throwable
-     */
     public function testCanGenerateSimpleQuery()
     {
         /**
@@ -28,14 +24,11 @@ class CaseBuilderTest extends TestCase
         $this->assertSameSize($caseQuery->whens, $caseQuery->thens);
 
         $this->assertEquals('case when `payment_status` = ? then ? else ? end', $caseQuery->toSql());
-        $this->assertEquals([1, "Paid", "Due",], $caseQuery->getBindings());
+        $this->assertEquals([ 1, "Paid", "Due", ], $caseQuery->getBindings());
         $this->assertCount(3, $caseQuery->getBindings());
         $this->assertEquals('case when `payment_status` = 1 then "Paid" else "Due" end', $caseQuery->toRaw());
     }
 
-    /**
-     * @throws Throwable
-     */
     public function testCanGenerateComplexQuery()
     {
         /**
@@ -95,7 +88,14 @@ class CaseBuilderTest extends TestCase
 
     public function testThrowsNoConditionsPresent()
     {
-        $this->assertTrue(true);
+        $this->expectException(CaseBuilderException::class);
+        $this->expectExceptionMessage('The CASE statement must have at least one WHEN/THEN condition.');
+
+        /**
+         * @var QueryCaseBuilder $caseQuery
+         */
+        $caseQuery = CaseBuilder::when('payment_status', 1);
+        $caseQuery->toSql();
     }
 
     public function testThrowsNumberOfConditionsNotMatching()
@@ -106,7 +106,7 @@ class CaseBuilderTest extends TestCase
         /**
          * @var QueryCaseBuilder $caseQuery
          */
-        $caseQuery = CaseBuilder::when('payment_status', 1);
+        $caseQuery = CaseBuilder::when('payment_status', 1)->then('Paid')->when('payment_status', 2);
         $caseQuery->toSql();
     }
 
@@ -115,9 +115,6 @@ class CaseBuilderTest extends TestCase
         $this->expectException(CaseBuilderException::class);
         $this->expectExceptionMessage('The CASE statement subject must be present when operator and column are not present.');
 
-        /**
-         * @var QueryCaseBuilder $caseQuery
-         */
         CaseBuilder::when('payment_status')
             ->then('Paid');
     }
@@ -127,12 +124,8 @@ class CaseBuilderTest extends TestCase
         $this->expectException(CaseBuilderException::class);
         $this->expectExceptionMessage('THEN cannot be before WHEN on a CASE statement.');
 
-        /**
-         * @var QueryCaseBuilder $caseQuery
-         */
         CaseBuilder::then('Paid')
             ->when('payment_status', 1);
-        $caseQuery->toSql();
     }
 
     public function testThrowsElseCanOnlyBeAfterAWhenThen()
@@ -140,9 +133,6 @@ class CaseBuilderTest extends TestCase
         $this->expectException(CaseBuilderException::class);
         $this->expectExceptionMessage('ELSE can only be set after a WHEN/THEN in a CASE statement.');
 
-        /**
-         * @var QueryCaseBuilder $caseQuery
-         */
         CaseBuilder::else('Unknown')
             ->when('payment_status', 1)
             ->then('Due');
@@ -153,9 +143,6 @@ class CaseBuilderTest extends TestCase
         $this->expectException(CaseBuilderException::class);
         $this->expectExceptionMessage('ELSE can only be set after a WHEN/THEN in a CASE statement.');
 
-        /**
-         * @var QueryCaseBuilder $caseQuery
-         */
         CaseBuilder::when('payment_status', 1)
             ->else('Unknown')
             ->then('Due');
@@ -166,9 +153,6 @@ class CaseBuilderTest extends TestCase
         $this->expectException(CaseBuilderException::class);
         $this->expectExceptionMessage('Wrong WHEN position.');
 
-        /**
-         * @var QueryCaseBuilder $caseQuery
-         */
         CaseBuilder::when('payment_status', 1)
             ->then('Paid')
             ->when('payment_status', 2)
@@ -188,7 +172,7 @@ class CaseBuilderTest extends TestCase
 
     public function testWithQueryBuilder()
     {
-        $query = DB::table('users')
+        $query = DB::table('invoices')
             ->where('active', true)
             ->case(function (QueryCaseBuilder $caseBuilder) {
                 $caseBuilder->when('payment_status', 1)
@@ -201,7 +185,7 @@ class CaseBuilderTest extends TestCase
             }, 'payment_status')
             ->where('subscription', 'premium');
 
-        $this->assertEquals('select (case when `payment_status` = ? then ? when `payment_status` = ? then ? when `payment_status` <= ? then ? else ? end) as `payment_status` from `users` where `active` = ? and `subscription` = ?', $query->toSql());
+        $this->assertEquals('select (case when `payment_status` = ? then ? when `payment_status` = ? then ? when `payment_status` <= ? then ? else ? end) as `payment_status` from `invoices` where `active` = ? and `subscription` = ?', $query->toSql());
         $this->assertCount(9, $query->getBindings());
     }
 }

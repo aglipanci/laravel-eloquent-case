@@ -193,7 +193,7 @@ class CaseBuilder
     public function toSql(): string
     {
         throw_if(
-            ! isset($this->whens) || ! isset($this->thens),
+            ! count($this->whens) || ! count($this->thens),
             CaseBuilderException::noConditionsPresent()
         );
 
