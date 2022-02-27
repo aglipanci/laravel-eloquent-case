@@ -1,6 +1,5 @@
 # Laravel Case Statement Support
-
-![Test Status](https://img.shields.io/github/workflow/status/aglipanci/laravel-case/run-tests?label=tests)
+![Test Status](https://img.shields.io/github/workflow/status/aglipanci/laravel-eloquent-case/run-tests?label=tests)
 
 This packages adds [CASE](https://dev.mysql.com/doc/refman/5.7/en/flow-control-functions.html#operator_case) statement support to Laravel Query Builder. It supports Laravel 8.x & 9.x.
 
