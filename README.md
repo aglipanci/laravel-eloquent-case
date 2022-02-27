@@ -13,11 +13,9 @@ use AgliPanci\LaravelCase\Query\CaseBuilder;
 
 $invoices = Invoice::query()
             ->case(function (CaseBuilder $case) {
-                $case->when('payment_status', 1)
-                    ->then('Paid')
-                    ->when('payment_status', 2)
-                    ->then('In Process')
-                    ->else('Pending');
+                $case->when('balance', '<', 0)->then('Overpaid')
+                    ->when('balance', 0)->then('Paid')
+                    ->else('Balance Due');
             }, 'payment_status')
             ->get();
 ```
@@ -27,9 +25,9 @@ Produces the following SQL query:
 ```mysql
 SELECT
   ( CASE
-      WHEN `payment_status` = 1 THEN 'Paid'
-      WHEN `payment_status` = 2 THEN 'In Process'
-      ELSE 'Pending'
+      WHEN `balance` < 0 THEN 'Overpaid'
+      WHEN `balance` = 0 THEN 'Paid'
+      ELSE 'Balance Due'
     END ) AS `payment_status`
 FROM
   `invoices`
@@ -41,10 +39,8 @@ FROM
 use App\Models\Invoice;
 use AgliPanci\LaravelCase\Facades\CaseBuilder;
 
-$caseQuery = CaseBuilder::when('payment_status', 1)
-                    ->then('Paid')
-                    ->when('payment_status', '>' ,2)
-                    ->then('In Process');
+$caseQuery = CaseBuilder::when('balance', 0)->then('Paid')
+                    ->when('balance', '>', 0)->then('Balance Due');
                     
 $invoices = Invoice::query()
             ->case($caseQuery, 'payment_status')
@@ -57,8 +53,7 @@ $invoices = Invoice::query()
 use App\Models\Invoice;
 use AgliPanci\LaravelCase\Facades\CaseBuilder;
 
-$caseQuery = CaseBuilder::whenRaw('payment_status = ?', [1])
-                    ->thenRaw("'Paid'")
+$caseQuery = CaseBuilder::whenRaw('balance = ?', [0])->thenRaw("'Paid'")
                     ->elseRaw("'N/A'")
                     
 $invoices = Invoice::query()
@@ -72,8 +67,7 @@ $invoices = Invoice::query()
 use App\Models\Invoice;
 use \AgliPanci\LaravelCase\Facades\CaseBuilder;
 
-$caseQuery = CaseBuilder::whenRaw('payment_status = ?', [1])
-                    ->thenRaw("'Paid'")
+$caseQuery = CaseBuilder::whenRaw('balance = ?', [0])->thenRaw("'Paid'")
                     ->elseRaw("'N/A'")
                     
 $invoices = Invoice::query()
@@ -86,8 +80,7 @@ $invoices = Invoice::query()
 ```php
 use AgliPanci\LaravelCase\Facades\CaseBuilder;
 
-$caseQuery = CaseBuilder::whenRaw('payment_status = ?', [1])
-                    ->thenRaw("'Paid'")
+$caseQuery = CaseBuilder::whenRaw('balance = ?', [0])->thenRaw("'Paid'")
                     ->elseRaw("'N/A'");
                     
 // Get the SQL representation of the query.                    
