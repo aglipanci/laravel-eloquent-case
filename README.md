@@ -1,9 +1,9 @@
 # Laravel Case Statement Support
 ![Test Status](https://img.shields.io/github/workflow/status/aglipanci/laravel-case/run-tests?label=tests)
 
-This packages adds MySQL `CASE` statement support to Laravel Query Builder.
+This packages adds [CASE](https://dev.mysql.com/doc/refman/5.7/en/flow-control-functions.html#operator_case) statement support to Laravel Query Builder.
 
-## Basic usage
+## Usage
 
 ### Add a CASE statement select on a Laravel Query
 
