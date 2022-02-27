@@ -223,12 +223,12 @@ class CaseBuilder
     }
 
     /**
-     * @param  mixed  $value
+     * @param $value
      * @param  string  $type
      * @return $this
      * @throws \Throwable
      */
-    public function addBinding(mixed $value, string $type): CaseBuilder
+    public function addBinding($value, string $type): CaseBuilder
     {
         throw_unless(
             array_key_exists($type, $this->bindings),
