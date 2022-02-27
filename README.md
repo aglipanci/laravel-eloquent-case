@@ -1,17 +1,18 @@
 # Laravel Case Statement Support
+
 ![Test Status](https://img.shields.io/github/workflow/status/aglipanci/laravel-case/run-tests?label=tests)
 
-This packages adds [CASE](https://dev.mysql.com/doc/refman/5.7/en/flow-control-functions.html#operator_case) statement support to Laravel Query Builder. It supports Laravel 8 & 9.
+This packages adds [CASE](https://dev.mysql.com/doc/refman/5.7/en/flow-control-functions.html#operator_case) statement support to Laravel Query Builder. It supports Laravel 8.x & 9.x.
 
 ## Usage
 
 ### Add a CASE statement select on a Laravel Query
 
 ```php
-use App\Models\User;
-use \AgliPanci\LaravelCase\Query\CaseBuilder;
+use App\Models\Invoice;
+use AgliPanci\LaravelCase\Query\CaseBuilder;
 
-$users = User::query()
+$invoices = Invoice::query()
             ->case(function (CaseBuilder $case) {
                 $case->when('payment_status', 1)
                     ->then('Paid')
@@ -25,20 +26,28 @@ $users = User::query()
 Produces the following SQL query:
 
 ```mysql
-select (case when `payment_status` = 1 then 'Paid' when `payment_status` = 2 then 'In Process' else 'Pending' end) as `payment_status` from `users` where `users`.`deleted_at` is null
+SELECT
+  ( CASE
+      WHEN `payment_status` = 1 THEN 'Paid'
+      WHEN `payment_status` = 2 THEN 'In Process'
+      ELSE 'Pending'
+    END ) AS `payment_status`
+FROM
+  `invoices`
 ```
 
 ### Build the case query separately
 
 ```php
-use \AgliPanci\LaravelCase\Facades\CaseBuilder;
+use App\Models\Invoice;
+use AgliPanci\LaravelCase\Facades\CaseBuilder;
 
 $caseQuery = CaseBuilder::when('payment_status', 1)
                     ->then('Paid')
                     ->when('payment_status', '>' ,2)
                     ->then('In Process');
                     
-$users = User::query()
+$invoices = Invoice::query()
             ->case($caseQuery, 'payment_status')
             ->get();
 ```
@@ -46,13 +55,14 @@ $users = User::query()
 ### Raw CASE conditions
 
 ```php
-use \AgliPanci\LaravelCase\Facades\CaseBuilder;
+use App\Models\Invoice;
+use AgliPanci\LaravelCase\Facades\CaseBuilder;
 
 $caseQuery = CaseBuilder::whenRaw('payment_status = ?', [1])
                     ->thenRaw("'Paid'")
                     ->elseRaw("'N/A'")
                     
-$users = User::query()
+$invoices = Invoice::query()
             ->case($caseQuery, 'payment_status')
             ->get();
 ```
@@ -60,13 +70,14 @@ $users = User::query()
 ### Use as raw SELECT
 
 ```php
+use App\Models\Invoice;
 use \AgliPanci\LaravelCase\Facades\CaseBuilder;
 
 $caseQuery = CaseBuilder::whenRaw('payment_status = ?', [1])
                     ->thenRaw("'Paid'")
                     ->elseRaw("'N/A'")
                     
-$users = User::query()
+$invoices = Invoice::query()
             ->selectRaw($caseQuery->toRaw())
             ->get();
 ```
@@ -74,7 +85,7 @@ $users = User::query()
 ### Available methods
 
 ```php
-use \AgliPanci\LaravelCase\Facades\CaseBuilder;
+use AgliPanci\LaravelCase\Facades\CaseBuilder;
 
 $caseQuery = CaseBuilder::whenRaw('payment_status = ?', [1])
                     ->thenRaw("'Paid'")
@@ -107,6 +118,10 @@ composer require aglipanci/laravel-case
 composer test
 ```
 
+### Changelog
+
+Please see [CHANGELOG](CHANGELOG.md) for more information what has changed recently.
+
 ### Security
 
 If you discover any security related issues, please email agli.panci@gmail.com instead of using the issue tracker.
@@ -115,7 +130,7 @@ If you discover any security related issues, please email agli.panci@gmail.com i
 
 - [Agli Pançi](https://github.com/aglipanci)
 - [Eduard Lleshi](https://github.com/eduardlleshi)
-- [All Contributors](../../contributors)
+- [All Contributors](https://github.com/aglipanci/laravel-case/graphs/contributors)
 
 ## License
 
