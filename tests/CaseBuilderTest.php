@@ -5,6 +5,7 @@ namespace AgliPanci\LaravelCase\Tests;
 use AgliPanci\LaravelCase\Exceptions\CaseBuilderException;
 use AgliPanci\LaravelCase\Facades\CaseBuilder;
 use AgliPanci\LaravelCase\Query\CaseBuilder as QueryCaseBuilder;
+use Illuminate\Database\Query\Builder;
 use Throwable;
 
 class CaseBuilderTest extends TestCase
@@ -25,14 +26,10 @@ class CaseBuilderTest extends TestCase
         $this->assertCount(1, $caseQuery->thens);
         $this->assertSameSize($caseQuery->whens, $caseQuery->thens);
 
-        $expected_sql = 'case when `payment_status` = ? then ? else ? end';
-        $expected_bindings = [ 1, "Paid", "Due", ];
-        $expected_compiled_query = 'case when `payment_status` = 1 then "Paid" else "Due" end';
-
-        $this->assertEquals($expected_sql, $caseQuery->toSql());
-        $this->assertEquals($expected_bindings, $caseQuery->getBindings());
-        $this->assertCount(count($expected_bindings), $caseQuery->getBindings());
-        $this->assertEquals($expected_compiled_query, $caseQuery->toRaw());
+        $this->assertEquals('case when `payment_status` = ? then ? else ? end', $caseQuery->toSql());
+        $this->assertEquals([1, "Paid", "Due",], $caseQuery->getBindings());
+        $this->assertCount(3, $caseQuery->getBindings());
+        $this->assertEquals('case when `payment_status` = 1 then "Paid" else "Due" end', $caseQuery->toRaw());
     }
 
     /**
@@ -51,20 +48,15 @@ class CaseBuilderTest extends TestCase
             ->then('Canceled')
             ->else('Unknown');
 
-
         $this->assertCount(3, $caseQuery->whens);
         $this->assertCount(3, $caseQuery->thens);
         $this->assertSameSize($caseQuery->whens, $caseQuery->thens);
         $this->assertNotEmpty($caseQuery->else);
 
-        $expected_sql = 'case when `payment_status` = ? then ? when `payment_status` = ? then ? when `payment_status` <= ? then ? else ? end';
-        $expected_bindings = [ 1, "Paid", 2, "Due", 5, "Canceled", "Unknown" ];
-        $expected_compiled_query = 'case when `payment_status` = 1 then "Paid" when `payment_status` = 2 then "Due" when `payment_status` <= 5 then "Canceled" else "Unknown" end';
-
-        $this->assertEquals($expected_sql, $caseQuery->toSql());
-        $this->assertEquals($expected_bindings, $caseQuery->getBindings());
-        $this->assertCount(count($expected_bindings), $caseQuery->getBindings());
-        $this->assertEquals($expected_compiled_query, $caseQuery->toRaw());
+        $this->assertEquals('case when `payment_status` = ? then ? when `payment_status` = ? then ? when `payment_status` <= ? then ? else ? end', $caseQuery->toSql());
+        $this->assertEquals([ 1, "Paid", 2, "Due", 5, "Canceled", "Unknown" ], $caseQuery->getBindings());
+        $this->assertCount(7, $caseQuery->getBindings());
+        $this->assertEquals('case when `payment_status` = 1 then "Paid" when `payment_status` = 2 then "Due" when `payment_status` <= 5 then "Canceled" else "Unknown" end', $caseQuery->toRaw());
     }
 
     public function testCanUseRawQueries()
@@ -78,20 +70,15 @@ class CaseBuilderTest extends TestCase
             ->then('Due')
             ->else('Unknown');
 
-
         $this->assertCount(2, $caseQuery->whens);
         $this->assertCount(2, $caseQuery->thens);
         $this->assertSameSize($caseQuery->whens, $caseQuery->thens);
         $this->assertNotEmpty($caseQuery->else);
 
-        $expected_sql = 'case when payment_status IN (1,2,3) then Paid when payment_status >= 4 then ? else ? end';
-        $expected_bindings = [ "Due", "Unknown" ];
-        $expected_compiled_query = 'case when payment_status IN (1,2,3) then Paid when payment_status >= 4 then "Due" else "Unknown" end';
-
-        $this->assertEquals($expected_sql, $caseQuery->toSql());
-        $this->assertEquals($expected_bindings, $caseQuery->getBindings());
-        $this->assertCount(count($expected_bindings), $caseQuery->getBindings());
-        $this->assertEquals($expected_compiled_query, $caseQuery->toRaw());
+        $this->assertEquals('case when payment_status IN (1,2,3) then Paid when payment_status >= 4 then ? else ? end', $caseQuery->toSql());
+        $this->assertEquals([ "Due", "Unknown" ], $caseQuery->getBindings());
+        $this->assertCount(2, $caseQuery->getBindings());
+        $this->assertEquals('case when payment_status IN (1,2,3) then Paid when payment_status >= 4 then "Due" else "Unknown" end', $caseQuery->toRaw());
     }
 
     public function testThrowsElseIsPresent()
@@ -130,9 +117,8 @@ class CaseBuilderTest extends TestCase
         /**
          * @var QueryCaseBuilder $caseQuery
          */
-        $caseQuery = CaseBuilder::when('payment_status')
+        CaseBuilder::when('payment_status')
             ->then('Paid');
-        $caseQuery->toSql();
     }
 
     public function testThrowsThenCannotBeBeforeWhen()
@@ -143,7 +129,7 @@ class CaseBuilderTest extends TestCase
         /**
          * @var QueryCaseBuilder $caseQuery
          */
-        $caseQuery = CaseBuilder::then('Paid')
+        CaseBuilder::then('Paid')
             ->when('payment_status', 1);
         $caseQuery->toSql();
     }
@@ -156,10 +142,9 @@ class CaseBuilderTest extends TestCase
         /**
          * @var QueryCaseBuilder $caseQuery
          */
-        $caseQuery = CaseBuilder::else('Unknown')
+        CaseBuilder::else('Unknown')
             ->when('payment_status', 1)
             ->then('Due');
-        $caseQuery->toRaw();
     }
 
     public function testThrowsElseCanOnlyBeAfterAWhenThenMiddle()
@@ -170,10 +155,9 @@ class CaseBuilderTest extends TestCase
         /**
          * @var QueryCaseBuilder $caseQuery
          */
-        $caseQuery = CaseBuilder::when('payment_status', 1)
+        CaseBuilder::when('payment_status', 1)
             ->else('Unknown')
             ->then('Due');
-        $caseQuery->toRaw();
     }
 
     public function testThrowsWrongWhenPosition()
@@ -184,10 +168,20 @@ class CaseBuilderTest extends TestCase
         /**
          * @var QueryCaseBuilder $caseQuery
          */
-        $caseQuery = CaseBuilder::when('payment_status', 1)
+        CaseBuilder::when('payment_status', 1)
             ->then('Paid')
             ->when('payment_status', 2)
             ->when('payment_status', 3);
-        $caseQuery->toSql();
+    }
+
+    public function testToQueryReturnsQueryBuilder()
+    {
+        /**
+         * @var QueryCaseBuilder $caseQuery
+         */
+        $caseQuery = CaseBuilder::when('payment_status', 1)
+            ->then('Paid');
+
+        $this->assertInstanceOf(Builder::class, $caseQuery->toQuery());
     }
 }

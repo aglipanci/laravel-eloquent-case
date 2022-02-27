@@ -85,7 +85,8 @@ If you discover any security related issues, please email agli.panci@gmail.com i
 
 ## Credits
 
-- [Agli Panci](https://github.com/aglipanci)
+- [Agli Pançi](https://github.com/aglipanci)
+- [Eduard Lleshi](https://github.com/eduardlleshi)
 - [All Contributors](../../contributors)
 
 ## License
