@@ -2,7 +2,7 @@
 
 namespace AgliPanci\LaravelCase\Tests;
 
-use AgliPanci\LaravelCase\Exceptions\InvalidCaseBuilderException;
+use AgliPanci\LaravelCase\Exceptions\CaseBuilderException;
 use AgliPanci\LaravelCase\Facades\CaseBuilder;
 use AgliPanci\LaravelCase\Query\CaseBuilder as QueryCaseBuilder;
 use Throwable;
@@ -96,7 +96,7 @@ class CaseBuilderTest extends TestCase
 
     public function testThrowsElseIsPresent()
     {
-        $this->expectException(InvalidCaseBuilderException::class);
+        $this->expectException(CaseBuilderException::class);
         $this->expectExceptionMessage('ELSE statement is already present. The CASE statement can have only one ELSE.');
 
         CaseBuilder::when('payment_status', 1)
@@ -112,7 +112,7 @@ class CaseBuilderTest extends TestCase
 
     public function testThrowsNumberOfConditionsNotMatching()
     {
-        $this->expectException(InvalidCaseBuilderException::class);
+        $this->expectException(CaseBuilderException::class);
         $this->expectExceptionMessage('The CASE statement must have a matching number of WHEN/THEN conditions.');
 
         /**
@@ -124,7 +124,7 @@ class CaseBuilderTest extends TestCase
 
     public function testThrowsSubjectMustBePresentWhenCaseOperatorNotUsed()
     {
-        $this->expectException(InvalidCaseBuilderException::class);
+        $this->expectException(CaseBuilderException::class);
         $this->expectExceptionMessage('The CASE statement subject must be present when operator and column are not present.');
 
         /**
@@ -137,7 +137,7 @@ class CaseBuilderTest extends TestCase
 
     public function testThrowsThenCannotBeBeforeWhen()
     {
-        $this->expectException(InvalidCaseBuilderException::class);
+        $this->expectException(CaseBuilderException::class);
         $this->expectExceptionMessage('THEN cannot be before WHEN on a CASE statement.');
 
         /**
@@ -150,7 +150,7 @@ class CaseBuilderTest extends TestCase
 
     public function testThrowsElseCanOnlyBeAfterAWhenThen()
     {
-        $this->expectException(InvalidCaseBuilderException::class);
+        $this->expectException(CaseBuilderException::class);
         $this->expectExceptionMessage('ELSE can only be set after a WHEN/THEN in a CASE statement.');
 
         /**
@@ -164,7 +164,7 @@ class CaseBuilderTest extends TestCase
 
     public function testThrowsElseCanOnlyBeAfterAWhenThenMiddle()
     {
-        $this->expectException(InvalidCaseBuilderException::class);
+        $this->expectException(CaseBuilderException::class);
         $this->expectExceptionMessage('ELSE can only be set after a WHEN/THEN in a CASE statement.');
 
         /**
@@ -178,7 +178,7 @@ class CaseBuilderTest extends TestCase
 
     public function testThrowsWrongWhenPosition()
     {
-        $this->expectException(InvalidCaseBuilderException::class);
+        $this->expectException(CaseBuilderException::class);
         $this->expectExceptionMessage('Wrong WHEN position.');
 
         /**
