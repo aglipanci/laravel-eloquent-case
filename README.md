@@ -109,7 +109,7 @@ $caseQuery->toQuery();
 You can install the package via composer:
 
 ```bash
-composer require aglipanci/laravel-case
+composer require aglipanci/laravel-eloquent-case
 ```
 
 ### Testing
