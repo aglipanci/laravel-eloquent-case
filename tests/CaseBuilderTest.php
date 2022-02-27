@@ -6,6 +6,7 @@ use AgliPanci\LaravelCase\Exceptions\CaseBuilderException;
 use AgliPanci\LaravelCase\Facades\CaseBuilder;
 use AgliPanci\LaravelCase\Query\CaseBuilder as QueryCaseBuilder;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class CaseBuilderTest extends TestCase
@@ -183,5 +184,24 @@ class CaseBuilderTest extends TestCase
             ->then('Paid');
 
         $this->assertInstanceOf(Builder::class, $caseQuery->toQuery());
+    }
+
+    public function testWithQueryBuilder()
+    {
+        $query = DB::table('users')
+            ->where('active', true)
+            ->case(function (QueryCaseBuilder $caseBuilder) {
+                $caseBuilder->when('payment_status', 1)
+                    ->then('Paid')
+                    ->when('payment_status', 2)
+                    ->then('Due')
+                    ->when('payment_status', '<=', 5)
+                    ->then('Canceled')
+                    ->else('Unknown');
+            }, 'payment_status')
+            ->where('subscription', 'premium');
+
+        $this->assertEquals('select (case when `payment_status` = ? then ? when `payment_status` = ? then ? when `payment_status` <= ? then ? else ? end) as `payment_status` from `users` where `active` = ? and `subscription` = ?', $query->toSql());
+        $this->assertCount(9, $query->getBindings());
     }
 }

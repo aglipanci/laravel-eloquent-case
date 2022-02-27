@@ -29,6 +29,8 @@ class LaravelCaseServiceProvider extends ServiceProvider
                 '('.$caseBuilder->toSql().') as '.$this->grammar->wrap($as),
                 $caseBuilder->getBindings()
             );
+
+            return $this;
         });
 
         $this->app->bind(
