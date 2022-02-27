@@ -5,7 +5,7 @@ namespace AgliPanci\LaravelCase\Facades;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @see \AgliPanci\LaravelCase\CaseStatement
+ * @see \AgliPanci\LaravelCase\Query\CaseBuilder
  */
 class CaseBuilder extends Facade
 {
