@@ -8,6 +8,11 @@
       "name": "Agli Panci",
       "email": "agli.panci@gmail.com",
       "role": "Developer"
+    },
+    {
+      "name": "Eduard Lleshi",
+      "email": "eduard.lleshi@gmail.com",
+      "role": "Developer"
     }
   ],
   "require": {
@@ -47,7 +52,7 @@
         "AgliPanci\\LaravelCase\\LaravelCaseServiceProvider"
       ],
       "aliases": {
-        "CaseStatement": "CaseBuilder"
+        "CaseBuilder": "CaseBuilder"
       }
     }
   },
