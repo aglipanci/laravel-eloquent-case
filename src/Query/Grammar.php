@@ -22,7 +22,7 @@ class Grammar
             $components[] = $caseBuilder->thens[$i];
         }
 
-        if ($caseBuilder->else) {
+        if ($caseBuilder->else !== null) {
             $components[] = 'else';
             $components[] = $caseBuilder->else;
         }
