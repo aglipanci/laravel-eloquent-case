@@ -2,6 +2,7 @@
 
 namespace AgliPanci\LaravelCase\Facades;
 
+use AgliPanci\LaravelCase\Query\CaseBuilder as CaseBuilderQuery;
 use Illuminate\Support\Facades\Facade;
 
 /**
@@ -11,6 +12,8 @@ class CaseBuilder extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return 'casebuilder';
+        self::clearResolvedInstance(CaseBuilderQuery::class);
+
+        return CaseBuilderQuery::class;
     }
 }
