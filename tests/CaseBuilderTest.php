@@ -75,7 +75,8 @@ class CaseBuilderTest extends TestCase
         $this->assertEquals('case when payment_status IN (1,2,3) then Paid when payment_status >= 4 then "Due" else "Unknown" end', $caseQuery->toRaw());
     }
 
-    public function testCanGenerateRawCases(){
+    public function testCanGenerateRawCases()
+    {
         /**
          * @var QueryCaseBuilder $caseQuery
          */
