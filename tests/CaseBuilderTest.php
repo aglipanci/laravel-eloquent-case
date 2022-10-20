@@ -75,6 +75,22 @@ class CaseBuilderTest extends TestCase
         $this->assertEquals('case when payment_status IN (1,2,3) then Paid when payment_status >= 4 then "Due" else "Unknown" end', $caseQuery->toRaw());
     }
 
+    public function testCanGenerateRawCases(){
+        /**
+         * @var QueryCaseBuilder $caseQuery
+         */
+        $caseQuery = CaseBuilder::caseRaw('count(id)')
+            ->whenRaw(1)
+            ->then(0)
+            ->else(100);
+
+        $this->assertCount(1, $caseQuery->whens);
+        $this->assertCount(1, $caseQuery->thens);
+        $this->assertSameSize($caseQuery->whens, $caseQuery->thens);
+
+        $this->assertEquals('case count(id) when 1 then 0 else 100 end', $caseQuery->toRaw());
+    }
+
     public function testThrowsElseIsPresent()
     {
         $this->expectException(CaseBuilderException::class);
