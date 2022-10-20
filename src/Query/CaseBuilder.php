@@ -37,6 +37,7 @@ class CaseBuilder
      */
     public function __construct(
         QueryBuilder $queryBuilder,
+
         Grammar      $grammar
     ) {
         $this->queryBuilder = $queryBuilder;
