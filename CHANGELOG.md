@@ -1,3 +1,6 @@
+## 1.4.0
+- Feature: Add `caseRaw` support
+
 ## 1.3.0
 
 - Bugfix: make the facade to always resolve a new instance of the CaseBuilder object.
