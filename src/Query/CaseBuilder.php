@@ -50,6 +50,13 @@ class CaseBuilder
         return $this;
     }
 
+    public function caseRaw($subject): self
+    {
+        $this->subject = $subject;
+
+        return $this;
+    }
+
     /**
      * @param mixed $column
      * @param mixed $operator
