@@ -32,7 +32,7 @@ class Grammar
         $sql = trim(implode(' ', $components));
 
         if ($caseBuilder->sum) {
-            $sql = 'sum('.$sql.')';
+            $sql = 'sum(' . $sql . ')';
         }
 
         return $sql;
@@ -40,11 +40,11 @@ class Grammar
 
     public function wrapColumn($value): string
     {
-        return '`'.str_replace('`', '``', $value).'`';
+        return '`' . str_replace('`', '``', $value) . '`';
     }
 
     public function wrapValue($value): string
     {
-        return '"'.str_replace('"', '""', $value).'"';
+        return '"' . str_replace('"', '""', $value) . '"';
     }
 }

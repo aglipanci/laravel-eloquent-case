@@ -10,3 +10,6 @@ testbench.yaml
 vendor
 node_modules
 .php-cs-fixer.cache
+/.vscode
+.DS_Store
+*code-workspace

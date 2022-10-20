@@ -50,6 +50,13 @@ class CaseBuilder
         return $this;
     }
 
+    public function caseRaw($subject): self
+    {
+        $this->subject = $subject;
+
+        return $this;
+    }
+
     /**
      * @param mixed $column
      * @param mixed $operator
@@ -60,7 +67,7 @@ class CaseBuilder
     public function when($column, $operator = null, $value = null): self
     {
         throw_if(
-            ! $this->subject && func_num_args() === 1,
+            !$this->subject && func_num_args() === 1,
             CaseBuilderException::subjectMustBePresentWhenCaseOperatorNotUsed()
         );
 
@@ -69,7 +76,7 @@ class CaseBuilder
             CaseBuilderException::wrongWhenPosition()
         );
 
-        [ $value, $operator ] = $this->queryBuilder->prepareValueAndOperator(
+        [$value, $operator] = $this->queryBuilder->prepareValueAndOperator(
             $value,
             $operator,
             func_num_args() === 2
@@ -193,7 +200,7 @@ class CaseBuilder
     public function toSql(): string
     {
         throw_if(
-            ! count($this->whens) || ! count($this->thens),
+            !count($this->whens) || !count($this->thens),
             CaseBuilderException::noConditionsPresent()
         );
 
