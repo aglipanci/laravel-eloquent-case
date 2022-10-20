@@ -45,4 +45,6 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Apply coding standard fixes
+          skip_checkout: true
+          skip_fetch: true
 
