@@ -1,7 +1,7 @@
 # Laravel Eloquent CASE Statement Support
 ![Test Status](https://img.shields.io/github/actions/workflow/status/aglipanci/laravel-eloquent-case/run-tests.yml?branch=main)
 
-This packages adds [CASE](https://dev.mysql.com/doc/refman/5.7/en/flow-control-functions.html#operator_case) statement support to Laravel Query Builder. It supports Laravel 8.x, 9.x & 10.x.
+This packages adds [CASE](https://dev.mysql.com/doc/refman/5.7/en/flow-control-functions.html#operator_case) statement support to Laravel Query Builder. It supports Laravel 8.x, 9.x, 10.x & 11.x.
 
 ## Usage
 

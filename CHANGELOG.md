@@ -1,3 +1,9 @@
+## 3.0.0
+- Adding support for Laravel 11
+
+## 2.0.0
+- Adding support for Laravel 10
+
 ## 1.4.0
 - Feature: Add `caseRaw` support
 
