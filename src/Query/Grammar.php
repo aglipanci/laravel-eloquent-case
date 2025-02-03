@@ -40,6 +40,12 @@ class Grammar
 
     public function wrapColumn($value): string
     {
+        $values = explode('.', $value);
+
+        if (count($values) === 2) {
+            return '`'.str_replace('`', '``', $values[0]).'`.'.'`'.str_replace('`', '``', $values[1]).'`';
+        }
+
         return '`'.str_replace('`', '``', $value).'`';
     }
 
