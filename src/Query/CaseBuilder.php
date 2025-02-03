@@ -82,16 +82,30 @@ class CaseBuilder
             func_num_args() === 2
         );
 
-        if ($value) {
-            $this->whens[] = $this->grammar->wrapColumn($column) . ' ' . $operator . ' ?';
-
+        if (isset($value)) {
             $this->addBinding($value, 'when');
-        } elseif ($operator) {
-            $this->whens[] = $this->grammar->wrapColumn($column) . ' ?';
 
+            $this->whens[] = [
+                'query' => $this->grammar->wrapColumn($column) . ' ' . $operator . ' ?',
+                'binding' => count($this->bindings['when']) - 1,
+            ];
+        } elseif (is_null($value)) {
+            $operator = $operator === '=' ? 'IS' : 'IS NOT';
+
+            $this->whens[] = [
+                'query' => $this->grammar->wrapColumn($column) . ' ' . $operator . ' NULL',
+            ];
+        } elseif ($operator) {
             $this->addBinding($operator, 'when');
+
+            $this->whens[] = [
+                'query' => $this->grammar->wrapColumn($column) . ' ?',
+                'binding' => count($this->bindings['when']) - 1,
+            ];
         } else {
-            $this->whens[] = $column;
+            $this->whens[] = [
+                'query' => $column,
+            ];
         }
 
         return $this;
@@ -107,9 +121,12 @@ class CaseBuilder
             CaseBuilderException::wrongWhenPosition()
         );
 
-        $this->whens[] = $expression;
-
         $this->addBinding($bindings, 'when');
+
+        $this->whens[] = [
+            'query' => $expression,
+            'binding' => count($this->bindings['when']) - 1,
+        ];
 
         return $this;
     }
@@ -124,9 +141,9 @@ class CaseBuilder
             CaseBuilderException::thenCannotBeBeforeWhen()
         );
 
-        $this->thens[] = '?';
-
         $this->addBinding($value, 'then');
+
+        $this->thens[] = '?';
 
         return $this;
     }
@@ -256,10 +273,12 @@ class CaseBuilder
          * Flattening here is to handle raw cases with multiple bindings.
          */
         foreach ($this->whens as $i => $when) {
-            if (is_array($this->bindings['when'][$i])) {
-                $bindings = array_merge($bindings, $this->bindings['when'][$i]);
-            } else {
-                $bindings[] = $this->bindings['when'][$i];
+            if (array_key_exists('binding', $when)) {
+                if (is_array($this->bindings['when'][$when['binding']])) {
+                    $bindings = array_merge($bindings, $this->bindings['when'][$when['binding']]);
+                } else {
+                    $bindings[] = $this->bindings['when'][$when['binding']];
+                }
             }
 
             if (is_array($this->bindings['then'][$i])) {

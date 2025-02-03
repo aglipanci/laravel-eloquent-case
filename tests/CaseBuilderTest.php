@@ -53,6 +53,30 @@ class CaseBuilderTest extends TestCase
         $this->assertEquals('case when `payment_status` = 1 then "Paid" when `payment_status` = 2 then "Due" when `payment_status` <= 5 then "Canceled" else "Unknown" end', $caseQuery->toRaw());
     }
 
+    public function testCanGenerateComplexQueryWithNullishTypes()
+    {
+        /**
+         * @var QueryCaseBuilder $caseQuery
+         */
+        $caseQuery = CaseBuilder::when('payment_date', '>', 0)
+            ->then('Paid')
+            ->when('payment_date', 0)
+            ->then('Due')
+            ->when('payment_date', null)
+            ->then('Canceled')
+            ->else('Unknown');
+
+        $this->assertCount(3, $caseQuery->whens);
+        $this->assertCount(3, $caseQuery->thens);
+        $this->assertSameSize($caseQuery->whens, $caseQuery->thens);
+        $this->assertNotEmpty($caseQuery->else);
+
+        $this->assertEquals('case when `payment_date` > ? then ? when `payment_date` = ? then ? when `payment_date` IS NULL then ? else ? end', $caseQuery->toSql());
+        $this->assertEquals([ 0, "Paid", 0, "Due", "Canceled", "Unknown" ], $caseQuery->getBindings());
+        $this->assertCount(6, $caseQuery->getBindings());
+        $this->assertEquals('case when `payment_date` > 0 then "Paid" when `payment_date` = 0 then "Due" when `payment_date` IS NULL then "Canceled" else "Unknown" end', $caseQuery->toRaw());
+    }
+
     public function testCanUseRawQueries()
     {
         /**
