@@ -17,7 +17,7 @@ class Grammar
 
         foreach ($caseBuilder->whens as $i => $when) {
             $components[] = 'when';
-            $components[] = $when;
+            $components[] = $when['query'];
             $components[] = 'then';
             $components[] = $caseBuilder->thens[$i];
         }
