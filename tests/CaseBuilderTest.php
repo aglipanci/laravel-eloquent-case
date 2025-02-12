@@ -52,8 +52,8 @@ class CaseBuilderTest extends TestCase
         $this->assertCount(7, $caseQuery->getBindings());
         $this->assertEquals('case when `payment_status` = 1 then "Paid" when `payment_status` = 2 then "Due" when `payment_status` <= 5 then "Canceled" else "Unknown" end', $caseQuery->toRaw());
     }
-
-    public function testCanGenerateComplexQueryWithNullishTypes()
+  
+  public function testCanGenerateComplexQueryWithNullishTypes()
     {
         /**
          * @var QueryCaseBuilder $caseQuery
@@ -75,6 +75,30 @@ class CaseBuilderTest extends TestCase
         $this->assertEquals([ 0, "Paid", 0, "Due", "Canceled", "Unknown" ], $caseQuery->getBindings());
         $this->assertCount(6, $caseQuery->getBindings());
         $this->assertEquals('case when `payment_date` > 0 then "Paid" when `payment_date` = 0 then "Due" when `payment_date` IS NULL then "Canceled" else "Unknown" end', $caseQuery->toRaw());
+    }
+
+    public function testCanGenerateComplexQueryWithDotSeparatedColumns()
+    {
+        /**
+         * @var QueryCaseBuilder $caseQuery
+         */
+        $caseQuery = CaseBuilder::when('Invoices.payment_status', 1)
+            ->then('Paid')
+            ->when('Invoices.payment_status', 2)
+            ->then('Due')
+            ->when('Invoices.payment_status', '<=', 5)
+            ->then('Canceled')
+            ->else('Unknown');
+
+        $this->assertCount(3, $caseQuery->whens);
+        $this->assertCount(3, $caseQuery->thens);
+        $this->assertSameSize($caseQuery->whens, $caseQuery->thens);
+        $this->assertNotEmpty($caseQuery->else);
+
+        $this->assertEquals('case when `Invoices`.`payment_status` = ? then ? when `Invoices`.`payment_status` = ? then ? when `Invoices`.`payment_status` <= ? then ? else ? end', $caseQuery->toSql());
+        $this->assertEquals([ 1, "Paid", 2, "Due", 5, "Canceled", "Unknown" ], $caseQuery->getBindings());
+        $this->assertCount(7, $caseQuery->getBindings());
+        $this->assertEquals('case when `Invoices`.`payment_status` = 1 then "Paid" when `Invoices`.`payment_status` = 2 then "Due" when `Invoices`.`payment_status` <= 5 then "Canceled" else "Unknown" end', $caseQuery->toRaw());
     }
 
     public function testCanUseRawQueries()
