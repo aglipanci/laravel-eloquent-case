@@ -52,8 +52,8 @@ class CaseBuilderTest extends TestCase
         $this->assertCount(7, $caseQuery->getBindings());
         $this->assertEquals('case when `payment_status` = 1 then "Paid" when `payment_status` = 2 then "Due" when `payment_status` <= 5 then "Canceled" else "Unknown" end', $caseQuery->toRaw());
     }
-  
-  public function testCanGenerateComplexQueryWithNullishTypes()
+
+    public function testCanGenerateComplexQueryWithNullishTypes()
     {
         /**
          * @var QueryCaseBuilder $caseQuery
