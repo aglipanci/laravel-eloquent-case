@@ -1,3 +1,7 @@
+## 3.1.0
+- Adding support for NULL case values
+- Adding support for dot-separation to specify table name and column name
+
 ## 3.0.0
 - Adding support for Laravel 11
 
