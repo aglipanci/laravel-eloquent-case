@@ -31,13 +31,9 @@ class CaseBuilder
 
     public QueryBuilder $queryBuilder;
 
-    /**
-     * @param QueryBuilder $queryBuilder
-     * @param Grammar $grammar
-     */
     public function __construct(
         QueryBuilder $queryBuilder,
-        Grammar      $grammar
+        Grammar $grammar
     ) {
         $this->queryBuilder = $queryBuilder;
         $this->grammar = $grammar;
@@ -58,10 +54,11 @@ class CaseBuilder
     }
 
     /**
-     * @param mixed $column
-     * @param mixed $operator
-     * @param mixed $value
+     * @param  mixed  $column
+     * @param  mixed  $operator
+     * @param  mixed  $value
      * @return $this
+     *
      * @throws Throwable
      */
     public function when($column, $operator = null, $value = null): self
@@ -76,7 +73,7 @@ class CaseBuilder
             CaseBuilderException::wrongWhenPosition()
         );
 
-        [ $value, $operator ] = $this->queryBuilder->prepareValueAndOperator(
+        [$value, $operator] = $this->queryBuilder->prepareValueAndOperator(
             $value,
             $operator,
             func_num_args() === 2
@@ -86,20 +83,20 @@ class CaseBuilder
             $this->addBinding($value, 'when');
 
             $this->whens[] = [
-                'query' => $this->grammar->wrapColumn($column) . ' ' . $operator . ' ?',
+                'query' => $this->grammar->wrapColumn($column).' '.$operator.' ?',
                 'binding' => count($this->bindings['when']) - 1,
             ];
         } elseif (is_null($value)) {
             $operator = $operator === '=' ? 'IS' : 'IS NOT';
 
             $this->whens[] = [
-                'query' => $this->grammar->wrapColumn($column) . ' ' . $operator . ' NULL',
+                'query' => $this->grammar->wrapColumn($column).' '.$operator.' NULL',
             ];
         } elseif ($operator) {
             $this->addBinding($operator, 'when');
 
             $this->whens[] = [
-                'query' => $this->grammar->wrapColumn($column) . ' ?',
+                'query' => $this->grammar->wrapColumn($column).' ?',
                 'binding' => count($this->bindings['when']) - 1,
             ];
         } else {
@@ -247,9 +244,9 @@ class CaseBuilder
     }
 
     /**
-     * @param mixed $value
-     * @param  string  $type
+     * @param  mixed  $value
      * @return $this
+     *
      * @throws \Throwable
      */
     public function addBinding($value, string $type): CaseBuilder

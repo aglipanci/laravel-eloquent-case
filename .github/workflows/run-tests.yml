@@ -42,7 +42,7 @@ jobs:
         run: vendor/bin/phpunit
 
       - name: Run coding standard checks
-        run: aglipanci/laravel-pint-action@1.0.0
+        uses: aglipanci/laravel-pint-action@latest
 
       - name: Auto-commit php-cs-fixer changes
         uses: stefanzweifel/git-auto-commit-action@v4
