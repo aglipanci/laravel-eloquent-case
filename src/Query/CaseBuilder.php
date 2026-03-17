@@ -243,7 +243,7 @@ class CaseBuilder
      * @param  mixed  $value
      * @return $this
      *
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function addBinding($value, string $type): CaseBuilder
     {

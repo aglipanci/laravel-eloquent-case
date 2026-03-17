@@ -6,7 +6,7 @@ use AgliPanci\LaravelCase\Query\CaseBuilder as CaseBuilderQuery;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @see \AgliPanci\LaravelCase\Query\CaseBuilder
+ * @see CaseBuilderQuery
  */
 class CaseBuilder extends Facade
 {
