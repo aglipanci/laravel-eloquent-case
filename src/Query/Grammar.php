@@ -9,8 +9,7 @@ class Grammar
 {
     public function __construct(
         protected QueryBuilder $queryBuilder
-    ) {
-    }
+    ) {}
 
     /**
      * @throws \Throwable
