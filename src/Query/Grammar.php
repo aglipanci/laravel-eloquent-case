@@ -2,8 +2,16 @@
 
 namespace AgliPanci\LaravelCase\Query;
 
+use Illuminate\Database\Connection;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+
 class Grammar
 {
+    public function __construct(
+        protected QueryBuilder $queryBuilder
+    ) {
+    }
+
     /**
      * @throws \Throwable
      */
@@ -40,17 +48,17 @@ class Grammar
 
     public function wrapColumn($value): string
     {
-        $values = explode('.', $value);
-
-        if (count($values) === 2) {
-            return '`'.str_replace('`', '``', $values[0]).'`.'.'`'.str_replace('`', '``', $values[1]).'`';
-        }
-
-        return '`'.str_replace('`', '``', $value).'`';
+        return $this->queryBuilder->getGrammar()->wrap($value);
     }
 
     public function wrapValue($value): string
     {
-        return '"'.str_replace('"', '""', $value).'"';
+        $connection = $this->queryBuilder->getConnection();
+
+        if ($connection instanceof Connection) {
+            return $connection->escape($value);
+        }
+
+        return "'".str_replace("'", "''", $value)."'";
     }
 }

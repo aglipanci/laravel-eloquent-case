@@ -10,6 +10,21 @@ use Illuminate\Support\Facades\DB;
 
 class CaseBuilderTest extends TestCase
 {
+    protected function wrap(string $value): string
+    {
+        return DB::query()->getGrammar()->wrap($value);
+    }
+
+    protected function wrapTable(string $value): string
+    {
+        return DB::query()->getGrammar()->wrapTable($value);
+    }
+
+    protected function quoteString(string $value): string
+    {
+        return DB::connection()->getPdo()->quote($value);
+    }
+
     public function test_can_generate_simple_query()
     {
         /**
@@ -23,10 +38,13 @@ class CaseBuilderTest extends TestCase
         $this->assertCount(1, $caseQuery->thens);
         $this->assertSameSize($caseQuery->whens, $caseQuery->thens);
 
-        $this->assertEquals('case when `payment_status` = ? then ? else ? end', $caseQuery->toSql());
+        $this->assertEquals('case when '.$this->wrap('payment_status').' = ? then ? else ? end', $caseQuery->toSql());
         $this->assertEquals([1, 'Paid', 'Due'], $caseQuery->getBindings());
         $this->assertCount(3, $caseQuery->getBindings());
-        $this->assertEquals('case when `payment_status` = 1 then "Paid" else "Due" end', $caseQuery->toRaw());
+        $this->assertEquals(
+            'case when '.$this->wrap('payment_status').' = 1 then '.$this->quoteString('Paid').' else '.$this->quoteString('Due').' end',
+            $caseQuery->toRaw()
+        );
     }
 
     public function test_can_generate_complex_query()
@@ -47,10 +65,18 @@ class CaseBuilderTest extends TestCase
         $this->assertSameSize($caseQuery->whens, $caseQuery->thens);
         $this->assertNotEmpty($caseQuery->else);
 
-        $this->assertEquals('case when `payment_status` = ? then ? when `payment_status` = ? then ? when `payment_status` <= ? then ? else ? end', $caseQuery->toSql());
+        $wrappedPaymentStatus = $this->wrap('payment_status');
+
+        $this->assertEquals(
+            'case when '.$wrappedPaymentStatus.' = ? then ? when '.$wrappedPaymentStatus.' = ? then ? when '.$wrappedPaymentStatus.' <= ? then ? else ? end',
+            $caseQuery->toSql()
+        );
         $this->assertEquals([1, 'Paid', 2, 'Due', 5, 'Canceled', 'Unknown'], $caseQuery->getBindings());
         $this->assertCount(7, $caseQuery->getBindings());
-        $this->assertEquals('case when `payment_status` = 1 then "Paid" when `payment_status` = 2 then "Due" when `payment_status` <= 5 then "Canceled" else "Unknown" end', $caseQuery->toRaw());
+        $this->assertEquals(
+            'case when '.$wrappedPaymentStatus.' = 1 then '.$this->quoteString('Paid').' when '.$wrappedPaymentStatus.' = 2 then '.$this->quoteString('Due').' when '.$wrappedPaymentStatus.' <= 5 then '.$this->quoteString('Canceled').' else '.$this->quoteString('Unknown').' end',
+            $caseQuery->toRaw()
+        );
     }
 
     public function test_can_generate_complex_query_with_nullish_types()
@@ -71,10 +97,18 @@ class CaseBuilderTest extends TestCase
         $this->assertSameSize($caseQuery->whens, $caseQuery->thens);
         $this->assertNotEmpty($caseQuery->else);
 
-        $this->assertEquals('case when `payment_date` > ? then ? when `payment_date` = ? then ? when `payment_date` IS NULL then ? else ? end', $caseQuery->toSql());
+        $wrappedPaymentDate = $this->wrap('payment_date');
+
+        $this->assertEquals(
+            'case when '.$wrappedPaymentDate.' > ? then ? when '.$wrappedPaymentDate.' = ? then ? when '.$wrappedPaymentDate.' IS NULL then ? else ? end',
+            $caseQuery->toSql()
+        );
         $this->assertEquals([0, 'Paid', 0, 'Due', 'Canceled', 'Unknown'], $caseQuery->getBindings());
         $this->assertCount(6, $caseQuery->getBindings());
-        $this->assertEquals('case when `payment_date` > 0 then "Paid" when `payment_date` = 0 then "Due" when `payment_date` IS NULL then "Canceled" else "Unknown" end', $caseQuery->toRaw());
+        $this->assertEquals(
+            'case when '.$wrappedPaymentDate.' > 0 then '.$this->quoteString('Paid').' when '.$wrappedPaymentDate.' = 0 then '.$this->quoteString('Due').' when '.$wrappedPaymentDate.' IS NULL then '.$this->quoteString('Canceled').' else '.$this->quoteString('Unknown').' end',
+            $caseQuery->toRaw()
+        );
     }
 
     public function test_can_generate_complex_query_with_dot_separated_columns()
@@ -95,10 +129,18 @@ class CaseBuilderTest extends TestCase
         $this->assertSameSize($caseQuery->whens, $caseQuery->thens);
         $this->assertNotEmpty($caseQuery->else);
 
-        $this->assertEquals('case when `Invoices`.`payment_status` = ? then ? when `Invoices`.`payment_status` = ? then ? when `Invoices`.`payment_status` <= ? then ? else ? end', $caseQuery->toSql());
+        $wrappedInvoicePaymentStatus = $this->wrap('Invoices.payment_status');
+
+        $this->assertEquals(
+            'case when '.$wrappedInvoicePaymentStatus.' = ? then ? when '.$wrappedInvoicePaymentStatus.' = ? then ? when '.$wrappedInvoicePaymentStatus.' <= ? then ? else ? end',
+            $caseQuery->toSql()
+        );
         $this->assertEquals([1, 'Paid', 2, 'Due', 5, 'Canceled', 'Unknown'], $caseQuery->getBindings());
         $this->assertCount(7, $caseQuery->getBindings());
-        $this->assertEquals('case when `Invoices`.`payment_status` = 1 then "Paid" when `Invoices`.`payment_status` = 2 then "Due" when `Invoices`.`payment_status` <= 5 then "Canceled" else "Unknown" end', $caseQuery->toRaw());
+        $this->assertEquals(
+            'case when '.$wrappedInvoicePaymentStatus.' = 1 then '.$this->quoteString('Paid').' when '.$wrappedInvoicePaymentStatus.' = 2 then '.$this->quoteString('Due').' when '.$wrappedInvoicePaymentStatus.' <= 5 then '.$this->quoteString('Canceled').' else '.$this->quoteString('Unknown').' end',
+            $caseQuery->toRaw()
+        );
     }
 
     public function test_can_use_raw_queries()
@@ -120,7 +162,10 @@ class CaseBuilderTest extends TestCase
         $this->assertEquals('case when payment_status IN (1,2,3) then Paid when payment_status >= 4 then ? else ? end', $caseQuery->toSql());
         $this->assertEquals(['Due', 'Unknown'], $caseQuery->getBindings());
         $this->assertCount(2, $caseQuery->getBindings());
-        $this->assertEquals('case when payment_status IN (1,2,3) then Paid when payment_status >= 4 then "Due" else "Unknown" end', $caseQuery->toRaw());
+        $this->assertEquals(
+            'case when payment_status IN (1,2,3) then Paid when payment_status >= 4 then '.$this->quoteString('Due').' else '.$this->quoteString('Unknown').' end',
+            $caseQuery->toRaw()
+        );
     }
 
     public function test_can_generate_raw_cases()
@@ -138,6 +183,24 @@ class CaseBuilderTest extends TestCase
         $this->assertSameSize($caseQuery->whens, $caseQuery->thens);
 
         $this->assertEquals('case count(id) when 1 then 0 else 100 end', $caseQuery->toRaw());
+    }
+
+    public function test_can_generate_simple_case_query()
+    {
+        /**
+         * @var QueryCaseBuilder $caseQuery
+         */
+        $caseQuery = CaseBuilder::case('payment_status')
+            ->when(1)
+            ->then('Paid')
+            ->else('Due');
+
+        $this->assertEquals('case '.$this->wrap('payment_status').' when ? then ? else ? end', $caseQuery->toSql());
+        $this->assertEquals([1, 'Paid', 'Due'], $caseQuery->getBindings());
+        $this->assertEquals(
+            'case '.$this->wrap('payment_status').' when 1 then '.$this->quoteString('Paid').' else '.$this->quoteString('Due').' end',
+            $caseQuery->toRaw()
+        );
     }
 
     public function test_throws_else_is_present()
@@ -250,14 +313,8 @@ class CaseBuilderTest extends TestCase
             }, 'payment_status')
             ->where('subscription', 'premium');
 
-        $grammar = $query->getGrammar();
-        $paymentStatus = $grammar->wrap('payment_status');
-        $invoices = $grammar->wrapTable('invoices');
-        $active = $grammar->wrap('active');
-        $subscription = $grammar->wrap('subscription');
-
         $this->assertEquals(
-            "select (case when `payment_status` = ? then ? when `payment_status` = ? then ? when `payment_status` <= ? then ? else ? end) as {$paymentStatus} from {$invoices} where {$active} = ? and {$subscription} = ?",
+            'select (case when '.$this->wrap('payment_status').' = ? then ? when '.$this->wrap('payment_status').' = ? then ? when '.$this->wrap('payment_status').' <= ? then ? else ? end) as '.$this->wrap('payment_status').' from '.$this->wrapTable('invoices').' where '.$this->wrap('active').' = ? and '.$this->wrap('subscription').' = ?',
             $query->toSql()
         );
         $this->assertCount(9, $query->getBindings());

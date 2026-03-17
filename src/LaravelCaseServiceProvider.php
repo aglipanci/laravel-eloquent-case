@@ -21,7 +21,7 @@ class LaravelCaseServiceProvider extends ServiceProvider
             if ($caseBuilder instanceof Closure) {
                 $callback = $caseBuilder;
 
-                $callback($caseBuilder = new CaseBuilder($this, new Grammar));
+                $callback($caseBuilder = new CaseBuilder($this, new Grammar($this)));
             }
 
             /** @var Builder $this */
@@ -35,7 +35,11 @@ class LaravelCaseServiceProvider extends ServiceProvider
 
         $this->app->bind(
             CaseBuilder::class,
-            fn ($app) => new CaseBuilder($app->make(Builder::class), new Grammar)
+            function ($app) {
+                $builder = $app->make(Builder::class);
+
+                return new CaseBuilder($builder, new Grammar($builder));
+            }
         );
     }
 }
