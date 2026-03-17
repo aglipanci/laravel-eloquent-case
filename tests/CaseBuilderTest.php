@@ -250,7 +250,16 @@ class CaseBuilderTest extends TestCase
             }, 'payment_status')
             ->where('subscription', 'premium');
 
-        $this->assertEquals('select (case when `payment_status` = ? then ? when `payment_status` = ? then ? when `payment_status` <= ? then ? else ? end) as `payment_status` from `invoices` where `active` = ? and `subscription` = ?', $query->toSql());
+        $grammar = $query->getGrammar();
+        $paymentStatus = $grammar->wrap('payment_status');
+        $invoices = $grammar->wrapTable('invoices');
+        $active = $grammar->wrap('active');
+        $subscription = $grammar->wrap('subscription');
+
+        $this->assertEquals(
+            "select (case when `payment_status` = ? then ? when `payment_status` = ? then ? when `payment_status` <= ? then ? else ? end) as {$paymentStatus} from {$invoices} where {$active} = ? and {$subscription} = ?",
+            $query->toSql()
+        );
         $this->assertCount(9, $query->getBindings());
     }
 }

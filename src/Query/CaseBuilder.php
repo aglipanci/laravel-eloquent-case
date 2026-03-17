@@ -86,22 +86,18 @@ class CaseBuilder
                 'query' => $this->grammar->wrapColumn($column).' '.$operator.' ?',
                 'binding' => count($this->bindings['when']) - 1,
             ];
-        } elseif (is_null($value)) {
+        } elseif (func_num_args() === 1) {
+            $this->addBinding($column, 'when');
+
+            $this->whens[] = [
+                'query' => '?',
+                'binding' => count($this->bindings['when']) - 1,
+            ];
+        } else {
             $operator = $operator === '=' ? 'IS' : 'IS NOT';
 
             $this->whens[] = [
                 'query' => $this->grammar->wrapColumn($column).' '.$operator.' NULL',
-            ];
-        } elseif ($operator) {
-            $this->addBinding($operator, 'when');
-
-            $this->whens[] = [
-                'query' => $this->grammar->wrapColumn($column).' ?',
-                'binding' => count($this->bindings['when']) - 1,
-            ];
-        } else {
-            $this->whens[] = [
-                'query' => $column,
             ];
         }
 
