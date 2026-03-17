@@ -45,6 +45,6 @@ jobs:
         uses: aglipanci/laravel-pint-action@latest
 
       - name: Auto-commit php-cs-fixer changes
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: Apply coding standard fixes
