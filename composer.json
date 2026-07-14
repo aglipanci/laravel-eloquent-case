@@ -1,7 +1,7 @@
 {
     "name": "aglipanci/laravel-eloquent-case",
     "description": "Adds CASE statement support to Laravel Query Builder.",
-    "homepage": "https://github.com/aglipanci/laravel-case",
+    "homepage": "https://github.com/aglipanci/laravel-eloquent-case",
     "license": "MIT",
     "authors": [
         {
@@ -22,8 +22,8 @@
     },
     "require-dev": {
         "larastan/larastan": "^3.0",
-        "orchestra/testbench": "^6.23.0|^7.0.0|^10.0|^11.0",
-        "phpunit/phpunit": "^9.3.9|^11.5.3|^12.5.12"
+        "orchestra/testbench": "^7.0|^8.0|^9.0|^10.0|^11.0",
+        "phpunit/phpunit": "^9.3.9|^10.5|^11.5.3|^12.5.12"
     },
     "autoload": {
         "psr-4": {

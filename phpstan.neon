@@ -2,11 +2,14 @@ includes:
     - ./vendor/larastan/larastan/extension.neon
 
 parameters:
-    level: 4
+    level: 8
     paths:
         - src
     ignoreErrors:
         - '#Unsafe usage of new static\(\).#'
+        # The package builds CASE expressions dynamically from grammar-wrapped
+        # components, so the SQL passed to selectRaw() can never be a literal-string.
+        - '#Parameter \#1 \$expression of method Illuminate\\Database\\Query\\Builder::selectRaw\(\) expects literal-string#'
     tmpDir: build/phpstan
     checkOctaneCompatibility: true
     checkModelProperties: true

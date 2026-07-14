@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AgliPanci\LaravelCase;
 
 use AgliPanci\LaravelCase\Query\CaseBuilder;

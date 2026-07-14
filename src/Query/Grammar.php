@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AgliPanci\LaravelCase\Query;
 
 use Illuminate\Database\Connection;
@@ -38,19 +40,21 @@ class Grammar
 
         $sql = trim(implode(' ', $components));
 
-        if ($caseBuilder->sum) {
+        if ($caseBuilder->aggregate) {
+            $sql = $caseBuilder->aggregate.'('.$sql.')';
+        } elseif ($caseBuilder->sum) {
             $sql = 'sum('.$sql.')';
         }
 
         return $sql;
     }
 
-    public function wrapColumn($value): string
+    public function wrapColumn(mixed $value): string
     {
         return $this->queryBuilder->getGrammar()->wrap($value);
     }
 
-    public function wrapValue($value): string
+    public function wrapValue(mixed $value): string
     {
         $connection = $this->queryBuilder->getConnection();
 

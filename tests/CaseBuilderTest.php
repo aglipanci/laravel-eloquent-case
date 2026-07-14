@@ -203,6 +203,98 @@ class CaseBuilderTest extends TestCase
         );
     }
 
+    public function test_can_compare_columns_in_when()
+    {
+        /**
+         * @var QueryCaseBuilder $caseQuery
+         */
+        $caseQuery = CaseBuilder::whenColumn('amount_paid', 'amount_due')
+            ->then('Paid')
+            ->whenColumn('amount_paid', '>', 'amount_due')
+            ->then('Overpaid')
+            ->else('Due');
+
+        $this->assertEquals(
+            'case when '.$this->wrap('amount_paid').' = '.$this->wrap('amount_due').' then ? when '.$this->wrap('amount_paid').' > '.$this->wrap('amount_due').' then ? else ? end',
+            $caseQuery->toSql()
+        );
+        $this->assertEquals(['Paid', 'Overpaid', 'Due'], $caseQuery->getBindings());
+    }
+
+    public function test_can_use_columns_as_then_and_else_results()
+    {
+        /**
+         * @var QueryCaseBuilder $caseQuery
+         */
+        $caseQuery = CaseBuilder::when('discounted', 1)
+            ->thenColumn('discounted_price')
+            ->else('N/A');
+
+        $this->assertEquals(
+            'case when '.$this->wrap('discounted').' = ? then '.$this->wrap('discounted_price').' else ? end',
+            $caseQuery->toSql()
+        );
+        $this->assertEquals([1, 'N/A'], $caseQuery->getBindings());
+
+        /**
+         * @var QueryCaseBuilder $caseQuery
+         */
+        $caseQuery = CaseBuilder::when('discounted', 1)
+            ->then('Discounted')
+            ->elseColumn('full_price');
+
+        $this->assertEquals(
+            'case when '.$this->wrap('discounted').' = ? then ? else '.$this->wrap('full_price').' end',
+            $caseQuery->toSql()
+        );
+        $this->assertEquals([1, 'Discounted'], $caseQuery->getBindings());
+    }
+
+    public function test_can_wrap_case_in_aggregate_functions()
+    {
+        $wrappedBalance = $this->wrap('balance');
+
+        $this->assertEquals(
+            'sum(case when '.$wrappedBalance.' > ? then ? else ? end)',
+            CaseBuilder::when('balance', '>', 0)->then(1)->else(0)->sum()->toSql()
+        );
+
+        $this->assertEquals(
+            'count(case when '.$wrappedBalance.' > ? then ? else ? end)',
+            CaseBuilder::when('balance', '>', 0)->then(1)->else(0)->count()->toSql()
+        );
+
+        $this->assertEquals(
+            'avg(case when '.$wrappedBalance.' > ? then ? else ? end)',
+            CaseBuilder::when('balance', '>', 0)->then(1)->else(0)->avg()->toSql()
+        );
+
+        $this->assertEquals(
+            'min(case when '.$wrappedBalance.' > ? then ? else ? end)',
+            CaseBuilder::when('balance', '>', 0)->then(1)->else(0)->min()->toSql()
+        );
+
+        $this->assertEquals(
+            'max(case when '.$wrappedBalance.' > ? then ? else ? end)',
+            CaseBuilder::when('balance', '>', 0)->then(1)->else(0)->max()->toSql()
+        );
+    }
+
+    public function test_to_raw_handles_question_marks_in_bindings()
+    {
+        /**
+         * @var QueryCaseBuilder $caseQuery
+         */
+        $caseQuery = CaseBuilder::when('payment_status', 1)
+            ->then('Paid?')
+            ->else('Due');
+
+        $this->assertEquals(
+            'case when '.$this->wrap('payment_status').' = 1 then '.$this->quoteString('Paid?').' else '.$this->quoteString('Due').' end',
+            $caseQuery->toRaw()
+        );
+    }
+
     public function test_throws_else_is_present()
     {
         $this->expectException(CaseBuilderException::class);
@@ -211,6 +303,17 @@ class CaseBuilderTest extends TestCase
         CaseBuilder::when('payment_status', 1)
             ->then('Paid')
             ->else('Due')
+            ->else('Unknown');
+    }
+
+    public function test_throws_else_is_present_with_falsy_raw_else()
+    {
+        $this->expectException(CaseBuilderException::class);
+        $this->expectExceptionMessage('ELSE statement is already present. The CASE statement can have only one ELSE.');
+
+        CaseBuilder::when('payment_status', 1)
+            ->then('Paid')
+            ->elseRaw('0')
             ->else('Unknown');
     }
 

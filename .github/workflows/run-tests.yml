@@ -9,17 +9,67 @@ on:
       - main
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    name: Coding standards
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Run coding standard checks
+        uses: aglipanci/laravel-pint-action@latest
+        with:
+          testMode: true
+
+  static-analysis:
+    runs-on: ubuntu-latest
+
+    name: Static analysis
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.4
+          coverage: none
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction
+
+      - name: Run static code analysis
+        run: vendor/bin/phpstan --error-format=github
+
   tests:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
         php: [8.4, 8.3, 8.2]
+        laravel: ['9.*', '10.*', '11.*', '12.*', '13.*']
         dependency-version: [prefer-lowest, prefer-stable]
+        include:
+          - laravel: '9.*'
+            testbench: '7.*'
+          - laravel: '10.*'
+            testbench: '8.*'
+          - laravel: '11.*'
+            testbench: '9.*'
+          - laravel: '12.*'
+            testbench: '10.*'
+          - laravel: '13.*'
+            testbench: '11.*'
+        exclude:
+          # Laravel 13 requires PHP >= 8.3
+          - laravel: '13.*'
+            php: 8.2
 
-    name: P${{ matrix.php }} - ${{ matrix.dependency-version }}
+    name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.dependency-version }}
 
     steps:
       - name: Checkout code
@@ -33,18 +83,9 @@ jobs:
 
       - name: Install dependencies
         run: |
+          composer require "illuminate/database:${{ matrix.laravel }}" "illuminate/support:${{ matrix.laravel }}" --no-interaction --no-update
+          composer require --dev "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
           composer update --prefer-dist --no-interaction --${{ matrix.dependency-version }}
-
-      - name: Run static code analysis
-        run: vendor/bin/phpstan --error-format=github
 
       - name: Execute tests
         run: vendor/bin/phpunit
-
-      - name: Run coding standard checks
-        uses: aglipanci/laravel-pint-action@latest
-
-      - name: Auto-commit php-cs-fixer changes
-        uses: stefanzweifel/git-auto-commit-action@v7
-        with:
-          commit_message: Apply coding standard fixes

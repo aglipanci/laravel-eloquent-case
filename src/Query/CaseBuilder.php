@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AgliPanci\LaravelCase\Query;
 
 use AgliPanci\LaravelCase\Exceptions\CaseBuilderException;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Throwable;
 
@@ -13,19 +14,33 @@ class CaseBuilder
 {
     public ?string $subject = null;
 
+    /**
+     * @var array<int, array{query: string, binding?: int}>
+     */
     public array $whens = [];
 
+    /**
+     * @var array<int, string>
+     */
     public array $thens = [];
 
     public ?string $else = null;
 
+    /**
+     * @var array{when: array<int, mixed>, then: array<int, mixed>, else: array<int, mixed>}
+     */
     public array $bindings = [
         'when' => [],
         'then' => [],
         'else' => [],
     ];
 
+    /**
+     * @deprecated Use $aggregate instead.
+     */
     public bool $sum = false;
+
+    public ?string $aggregate = null;
 
     public Grammar $grammar;
 
@@ -39,29 +54,26 @@ class CaseBuilder
         $this->grammar = $grammar;
     }
 
-    public function case($subject): self
+    public function case(mixed $subject): self
     {
         $this->subject = $this->grammar->wrapColumn($subject);
 
         return $this;
     }
 
-    public function caseRaw($subject): self
+    public function caseRaw(mixed $subject): self
     {
-        $this->subject = $subject;
+        $this->subject = (string) $subject;
 
         return $this;
     }
 
     /**
-     * @param  mixed  $column
-     * @param  mixed  $operator
-     * @param  mixed  $value
      * @return $this
      *
      * @throws Throwable
      */
-    public function when($column, $operator = null, $value = null): self
+    public function when(mixed $column, mixed $operator = null, mixed $value = null): self
     {
         throw_if(
             ! $this->subject && func_num_args() === 1,
@@ -105,9 +117,34 @@ class CaseBuilder
     }
 
     /**
+     * Compare two columns in a WHEN condition.
+     *
+     * @return $this
+     *
      * @throws Throwable
      */
-    public function whenRaw(string $expression, $bindings = []): self
+    public function whenColumn(mixed $first, mixed $operator = null, mixed $second = null): self
+    {
+        throw_unless(
+            count($this->whens) === count($this->thens),
+            CaseBuilderException::wrongWhenPosition()
+        );
+
+        if (func_num_args() === 2) {
+            [$second, $operator] = [$operator, '='];
+        }
+
+        $this->whens[] = [
+            'query' => $this->grammar->wrapColumn($first).' '.$operator.' '.$this->grammar->wrapColumn($second),
+        ];
+
+        return $this;
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function whenRaw(string $expression, mixed $bindings = []): self
     {
         throw_unless(
             count($this->whens) === count($this->thens),
@@ -127,7 +164,7 @@ class CaseBuilder
     /**
      * @throws Throwable
      */
-    public function then($value): self
+    public function then(mixed $value): self
     {
         throw_if(
             count($this->whens) == count($this->thens),
@@ -142,9 +179,30 @@ class CaseBuilder
     }
 
     /**
+     * Use a column as the THEN result.
+     *
+     * @return $this
+     *
      * @throws Throwable
      */
-    public function thenRaw($value, $bindings = []): self
+    public function thenColumn(mixed $column): self
+    {
+        throw_if(
+            count($this->whens) == count($this->thens),
+            CaseBuilderException::thenCannotBeBeforeWhen()
+        );
+
+        $this->addBinding([], 'then');
+
+        $this->thens[] = $this->grammar->wrapColumn($column);
+
+        return $this;
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function thenRaw(mixed $value, mixed $bindings = []): self
     {
         throw_if(
             count($this->whens) == count($this->thens),
@@ -161,17 +219,9 @@ class CaseBuilder
     /**
      * @throws Throwable
      */
-    public function else($value): self
+    public function else(mixed $value): self
     {
-        throw_if(
-            $this->else,
-            CaseBuilderException::elseIsPresent()
-        );
-
-        throw_if(
-            count($this->whens) === 0 || count($this->whens) !== count($this->thens),
-            CaseBuilderException::elseCanOnlyBeAfterAWhenThen()
-        );
+        $this->guardAgainstInvalidElse();
 
         $this->else = '?';
 
@@ -181,18 +231,59 @@ class CaseBuilder
     }
 
     /**
+     * Use a column as the ELSE result.
+     *
+     * @return $this
+     *
      * @throws Throwable
      */
-    public function elseRaw($value, $bindings = []): self
+    public function elseColumn(mixed $column): self
     {
-        throw_if(
-            count($this->whens) === 0,
-            CaseBuilderException::elseCanOnlyBeAfterAWhenThen()
-        );
+        $this->guardAgainstInvalidElse();
 
-        $this->else = $value;
+        $this->else = $this->grammar->wrapColumn($column);
+
+        return $this;
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function elseRaw(mixed $value, mixed $bindings = []): self
+    {
+        $this->guardAgainstInvalidElse();
+
+        $this->else = (string) $value;
 
         $this->addBinding($bindings, 'else');
+
+        return $this;
+    }
+
+    /**
+     * @throws Throwable
+     */
+    protected function guardAgainstInvalidElse(): void
+    {
+        throw_unless(
+            is_null($this->else),
+            CaseBuilderException::elseIsPresent()
+        );
+
+        throw_if(
+            count($this->whens) === 0 || count($this->whens) !== count($this->thens),
+            CaseBuilderException::elseCanOnlyBeAfterAWhenThen()
+        );
+    }
+
+    /**
+     * Wrap the CASE statement in an aggregate function.
+     *
+     * @return $this
+     */
+    public function aggregate(string $function): self
+    {
+        $this->aggregate = $function;
 
         return $this;
     }
@@ -201,7 +292,27 @@ class CaseBuilder
     {
         $this->sum = true;
 
-        return $this;
+        return $this->aggregate('sum');
+    }
+
+    public function count(): self
+    {
+        return $this->aggregate('count');
+    }
+
+    public function avg(): self
+    {
+        return $this->aggregate('avg');
+    }
+
+    public function min(): self
+    {
+        return $this->aggregate('min');
+    }
+
+    public function max(): self
+    {
+        return $this->aggregate('max');
     }
 
     /**
@@ -227,25 +338,41 @@ class CaseBuilder
      */
     public function toRaw(): string
     {
+        $sql = $this->toSql();
+
         $bindings = array_map(
             fn ($parameter) => is_string($parameter) ? $this->grammar->wrapValue($parameter) : $parameter,
             $this->getBindings()
         );
 
-        return Str::replaceArray(
-            '?',
-            $bindings,
-            $this->toSql()
-        );
+        /**
+         * Substitute the bindings in a single pass over the compiled SQL, so
+         * placeholder characters inside already-substituted values are never
+         * mistaken for the next placeholder.
+         */
+        $raw = '';
+        $offset = 0;
+
+        foreach ($bindings as $binding) {
+            $position = strpos($sql, '?', $offset);
+
+            if ($position === false) {
+                break;
+            }
+
+            $raw .= substr($sql, $offset, $position - $offset).$binding;
+            $offset = $position + 1;
+        }
+
+        return $raw.substr($sql, $offset);
     }
 
     /**
-     * @param  mixed  $value
      * @return $this
      *
      * @throws Throwable
      */
-    public function addBinding($value, string $type): CaseBuilder
+    public function addBinding(mixed $value, string $type): CaseBuilder
     {
         throw_unless(
             array_key_exists($type, $this->bindings),
@@ -258,6 +385,9 @@ class CaseBuilder
         return $this;
     }
 
+    /**
+     * @return array<int, mixed>
+     */
     public function getBindings(): array
     {
         $bindings = [];
@@ -274,10 +404,12 @@ class CaseBuilder
                 }
             }
 
-            if (is_array($this->bindings['then'][$i])) {
-                $bindings = array_merge($bindings, $this->bindings['then'][$i]);
-            } else {
-                $bindings[] = $this->bindings['then'][$i];
+            if (array_key_exists($i, $this->bindings['then'])) {
+                if (is_array($this->bindings['then'][$i])) {
+                    $bindings = array_merge($bindings, $this->bindings['then'][$i]);
+                } else {
+                    $bindings[] = $this->bindings['then'][$i];
+                }
             }
         }
 
